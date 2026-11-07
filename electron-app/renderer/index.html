@@ -222,10 +222,20 @@ const State = {
   annotations: {}, comments: {},
   selectedAnnotationId: null,
   sidebarTab: "thumbs",
+  nextIssueNumber: 1,
   bookmarks: JSON.parse(localStorage.getItem("opdf-bookmarks") || "[]"),
   author: localStorage.getItem("opdf-author") || "You",
 };
 window.State = State;
+
+// Design review: status colors for review cloud badges
+const REVIEW_STATUS_COLORS = {
+  open: "#ea580c",      // orange
+  accepted: "#16a34a",  // green
+  rejected: "#dc2626",  // red
+  completed: "#0891b2", // teal
+};
+window.REVIEW_STATUS_COLORS = REVIEW_STATUS_COLORS;
 
 function toast(msg, duration = 2500) {
   const t = document.createElement("div");
@@ -335,7 +345,10 @@ function createAnnotationElement(a) {
     svg.appendChild(pl);
     return svg;
   }
-  if (a.kind === "rect" || a.kind === "ellipse" || a.kind === "cloud") {
+  if (a.kind === "rect" || a.kind === "ellipse" || a.kind === "cloud" || a.kind === "cloud_review") {
+    const isReview = a.kind === "cloud_review";
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "position:absolute;inset:0;pointer-events:none";
     const svg = svgEl("svg", { width: "100%", height: "100%" });
     svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
     const x = a.x * z, y = a.y * z, w = a.width * z, h = a.height * z, sw = a.strokeWidth * z;
@@ -343,13 +356,41 @@ function createAnnotationElement(a) {
     if (a.kind === "rect") shape = svgEl("rect", { x, y, width: w, height: h });
     else if (a.kind === "ellipse") shape = svgEl("ellipse", { cx: x + w/2, cy: y + h/2, rx: w/2, ry: h/2 });
     else { shape = svgEl("path", { d: cloudPath(x, y, w, h, sw) }); }
-    shape.setAttribute("fill", a.fill || "none");
-    shape.setAttribute("stroke", a.color); shape.setAttribute("stroke-width", sw);
+    const strokeColor = isReview ? REVIEW_STATUS_COLORS[a.reviewStatus] || a.color : a.color;
+    shape.setAttribute("fill", a.fill || (isReview ? "rgba(234,88,12,0.06)" : "none"));
+    shape.setAttribute("stroke", strokeColor); shape.setAttribute("stroke-width", sw);
     shape.setAttribute("opacity", a.opacity);
     shape.style.pointerEvents = "all"; shape.style.cursor = "pointer";
     shape.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
     svg.appendChild(shape);
-    return svg;
+
+    if (isReview) {
+      // Numbered status badge at the top-right corner of the cloud
+      const bx = x + w - 1, by = y - 1; // top-right of cloud bounds
+      const badgeR = Math.max(9, 10 * z * 0.8);
+      const badge = svgEl("circle", {
+        cx: bx, cy: by, r: badgeR,
+        fill: REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c",
+        stroke: "#ffffff", "stroke-width": 1.5,
+      });
+      badge.style.pointerEvents = "all"; badge.style.cursor = "pointer";
+      badge.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+      const num = svgEl("text", {
+        x: bx, y: by, "text-anchor": "middle", "dominant-baseline": "central",
+        fill: "#ffffff", "font-size": Math.round(badgeR * 1.05),
+        "font-weight": 700, "font-family": "Arial, sans-serif",
+      });
+      num.textContent = String(a.issueNumber ?? "?");
+      num.style.pointerEvents = "all"; num.style.cursor = "pointer";
+      num.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+      svg.appendChild(badge); svg.appendChild(num);
+      // Selected outline
+      if (isSelected) {
+        svg.appendChild(svgEl("rect", { x: x - 4, y: y - 4, width: w + 8, height: h + 8, fill: "none", stroke: "#ea580c", "stroke-width": 1.5, "stroke-dasharray": "4 2" }));
+      }
+    }
+    wrapper.appendChild(svg);
+    return wrapper;
   }
   if (a.kind === "line" || a.kind === "arrow") {
     const svg = svgEl("svg", { width: "100%", height: "100%" });
@@ -507,7 +548,7 @@ function attachToolHandlers(container, pageNum) {
     const x = (e.clientX - rect.left) / State.zoom;
     const y = (e.clientY - rect.top) / State.zoom;
 
-    if (["highlight","underline","strike","rect","ellipse","cloud","line","arrow"].includes(State.activeTool)) {
+    if (["highlight","underline","strike","rect","ellipse","cloud","cloud_review","line","arrow"].includes(State.activeTool)) {
       drag = { x0: x, y0: y, x1: x, y1: y };
     } else if (State.activeTool === "freehand") {
       freehandPts = [{ x, y }];
@@ -564,7 +605,7 @@ function drawDragPreview(layer, drag) {
   svg.dataset.preview = "1";
   const x = Math.min(drag.x0, drag.x1) * State.zoom, y = Math.min(drag.y0, drag.y1) * State.zoom;
   const w = Math.abs(drag.x1 - drag.x0) * State.zoom, h = Math.abs(drag.y1 - drag.y0) * State.zoom;
-  if (["rect","ellipse","cloud","highlight","underline","strike"].includes(State.activeTool)) {
+  if (["rect","ellipse","cloud","cloud_review","highlight","underline","strike"].includes(State.activeTool)) {
     let shape;
     if (State.activeTool === "ellipse") shape = svgEl("ellipse", { cx: x + w/2, cy: y + h/2, rx: w/2, ry: h/2 });
     else shape = svgEl("rect", { x, y, width: w, height: h });
@@ -601,8 +642,22 @@ function finalizeDragAnnotation(pageNum, drag) {
       if (quads.length === 0) { toast("No text in selection"); return; }
       addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x, y, quads, color: State.toolColor, opacity: State.activeTool === "highlight" ? 0.4 : 1, author: State.author, createdAt: nowIso() });
     });
-  } else if (State.activeTool === "rect" || State.activeTool === "ellipse" || State.activeTool === "cloud") {
-    addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x, y, width: w, height: h, strokeWidth: State.toolStrokeWidth, fill: State.toolFill ? State.toolColor + "20" : null, color: State.toolColor, opacity: State.toolOpacity, rotation: 0, author: State.author, createdAt: nowIso() });
+  } else if (State.activeTool === "rect" || State.activeTool === "ellipse" || State.activeTool === "cloud" || State.activeTool === "cloud_review") {
+    const isReview = State.activeTool === "cloud_review";
+    const ann = { id: makeId(), kind: State.activeTool, pageNumber: pageNum, x, y, width: w, height: h, strokeWidth: State.toolStrokeWidth, fill: State.toolFill ? State.toolColor + "20" : null, color: State.toolColor, opacity: State.toolOpacity, rotation: 0, author: State.author, createdAt: nowIso() };
+    if (isReview) {
+      ann.issueNumber = State.nextIssueNumber++;
+      ann.reviewStatus = "open";
+      ann.body = "";
+    }
+    addAnnotation(ann);
+    if (isReview) {
+      // Auto-open the comment panel so the reviewer types the issue description
+      UI.openCommentPanel(ann.id);
+      const body = document.getElementById("annBody");
+      if (body) { body.focus(); body.placeholder = "Describe issue #" + ann.issueNumber + "…"; }
+      toast("Review cloud #" + ann.issueNumber + " created — type your comment");
+    }
   } else if (State.activeTool === "line" || State.activeTool === "arrow") {
     addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x: drag.x0, y: drag.y0, x2: drag.x1, y2: drag.y1, strokeWidth: State.toolStrokeWidth, hasArrowHead: State.activeTool === "arrow", color: State.toolColor, opacity: State.toolOpacity, author: State.author, createdAt: nowIso() });
   }
@@ -695,9 +750,19 @@ const UI = {
     const a = State.annotations[annotationId];
     if (!a) return;
     const comments = Object.values(State.comments).filter(c => c.annotationId === annotationId).sort((x, y) => x.createdAt.localeCompare(y.createdAt));
+    const isReview = a.kind === "cloud_review";
+    const statusBlock = isReview ? `
+      <label>Issue Status</label>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        ${["open","accepted","rejected","completed"].map(s => `
+          <button onclick="setReviewStatus('${annotationId}','${s}')" style="flex:1;min-width:60px;padding:5px;border:${a.reviewStatus === s ? "2px solid " + REVIEW_STATUS_COLORS[s] : "1px solid #d1d5db"};background:${a.reviewStatus === s ? REVIEW_STATUS_COLORS[s] : "white"};color:${a.reviewStatus === s ? "white" : "#374151"};border-radius:4px;cursor:pointer;font-size:11px;text-transform:capitalize;">${s}</button>
+        `).join("")}
+      </div>` : "";
     const html = `
+      ${isReview ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:8px;margin-bottom:8px;"><strong>Issue #${a.issueNumber ?? "?"}</strong> — Page ${a.pageNumber}<br><span style="font-size:10px;color:#6b7280;">Status: <span style="color:${REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"};font-weight:700;">${(a.reviewStatus || "open").toUpperCase()}</span></span></div>` : ""}
       <label>Author</label><input type="text" id="annAuthor" value="${a.author}" />
-      <label>Note</label><textarea id="annBody">${a.body || ""}</textarea>
+      <label>${isReview ? "Issue description" : "Note"}</label><textarea id="annBody" ${isReview ? 'placeholder="Describe the issue…"' : ""}>${a.body || ""}</textarea>
+      ${statusBlock}
       <label>Replies (${comments.length})</label>
       ${comments.map(c => `<div style="background:#f9fafb;padding:6px;border-radius:4px;margin-bottom:4px;"><div style="display:flex;justify-content:space-between;"><strong>${c.author}</strong><span style="font-size:10px;color:#9ca3af;">${new Date(c.createdAt).toLocaleString()}</span></div><div>${c.body}</div>${c.status && c.status !== "none" ? `<span class="status ${c.status}">${c.status}</span>` : ""}</div>`).join("")}
       <label>Add reply</label><textarea id="replyBody" placeholder="Type your reply…"></textarea>
@@ -706,11 +771,11 @@ const UI = {
         <button onclick="UI.setCommentStatus('${annotationId}', 'accepted')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✓ Accept</button>
         <button onclick="UI.setCommentStatus('${annotationId}', 'rejected')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✗ Reject</button>
       </div>
-      <button onclick="UI.deleteAnnotation('${annotationId}')" style="width:100%;margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px;border-radius:4px;cursor:pointer;">🗑 Delete annotation</button>
+      <button onclick="UI.deleteAnnotation('${annotationId}')" style="width:100%;margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px;border-radius:4px;cursor:pointer;">🗑 Delete ${isReview ? "issue #" + (a.issueNumber ?? "?") : "annotation"}</button>
     `;
-    this.openRightPanel("Comment", html);
+    this.openRightPanel(isReview ? "Design Review Issue" : "Comment", html);
     document.getElementById("annAuthor").oninput = (e) => { a.author = e.target.value; };
-    document.getElementById("annBody").oninput = (e) => { a.body = e.target.value; renderPage(State.currentPage); };
+    document.getElementById("annBody").oninput = (e) => { a.body = e.target.value; renderPage(State.currentPage); UI.renderSidebar(); };
   },
   addReply: function(annotationId) {
     const body = document.getElementById("replyBody").value.trim();
@@ -811,8 +876,45 @@ async function burnAnnotationsIntoPdf() {
         page.drawEllipse({ x: a.x + a.width / 2, y: yBottom - a.height / 2, xScale: a.width / 2, yScale: a.height / 2, borderColor: color, borderWidth: a.strokeWidth, color: a.fill ? hexToRgb(a.fill) : undefined, opacity });
         break;
       case "cloud":
-        page.drawRectangle({ x: a.x, y: yBottom - a.height, width: a.width, height: a.height, borderColor: color, borderWidth: a.strokeWidth, opacity });
+      case "cloud_review": {
+        const isRev = a.kind === "cloud_review";
+        const strokeC = isRev ? hexToRgb(REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c") : color;
+        // Cloud outline (approximated as rectangle outline; visual scallop in viewer)
+        page.drawRectangle({
+          x: a.x, y: yBottom - a.height, width: a.width, height: a.height,
+          borderColor: strokeC, borderWidth: a.strokeWidth,
+          color: isRev ? hexToRgb("#fff7ed") : undefined,
+          opacity: isRev ? 0.5 : opacity,
+          borderOpacity: opacity,
+        });
+        if (isRev) {
+          // Numbered status badge (circle + number) at top-right of cloud
+          const bx = a.x + a.width - 2;
+          const by = yBottom - 2; // top edge in pdf-lib coords (bottom of cloud is yBottom - height)
+          const r = 8;
+          page.drawCircle({
+            x: bx, y: by, size: r,
+            color: hexToRgb(REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"),
+          });
+          page.drawCircle({ x: bx, y: by, size: r, borderColor: hexToRgb("#ffffff"), borderWidth: 1, color: undefined });
+          const numText = String(a.issueNumber ?? "?");
+          const numW = helvBold.widthOfTextAtSize(numText, 9);
+          page.drawText(numText, {
+            x: bx - numW / 2, y: by - 3.2,
+            size: 9, font: helvBold, color: hexToRgb("#ffffff"),
+          });
+          // Comment text next to the badge (truncated)
+          if (a.body) {
+            const label = `#${a.issueNumber}: ${a.body}`.substring(0, 80);
+            page.drawText(label, {
+              x: a.x, y: yBottom - a.height - 12,
+              size: 8, font: helv,
+              color: hexToRgb(REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"),
+            });
+          }
+        }
         break;
+      }
       case "line":
       case "arrow":
         page.drawLine({ start: { x: a.x, y: height - a.y }, end: { x: a.x2, y: height - a.y2 }, thickness: a.strokeWidth, color, opacity });
@@ -881,7 +983,7 @@ function RIBBON_HOME() {
   return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.openPdf()"><span class="icon">📂</span><span class="text">Open</span></button><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button></div><span class="label">File</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="undo()"><span class="icon">↶</span><span class="text">Undo</span></button><button class="rbtn" onclick="redo()"><span class="icon">↷</span><span class="text">Redo</span></button></div><span class="label">Edit</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("hand","✋","Hand")}</div><span class="label">Navigate</span></div><div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;"><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span></button><span id="zoomLabel" style="font-size:11px;width:40px;text-align:center;">100%</span><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span></button></div><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="prevPage()"><span class="icon">‹</span></button><input type="number" id="pageInput" value="1" min="1" style="width:40px;text-align:center;" onchange="goToPage(this.value)" /><span id="pageCount" style="font-size:11px;">/ 1</span><button class="rbtn" onclick="nextPage()"><span class="icon">›</span></button></div></div><span class="label">View</span></div>${styleControls()}`;
 }
 function RIBBON_ANNOTATE() {
-  return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("highlight","🖍","Highlight")}${toolBtn("underline","U̲","Underline")}${toolBtn("strike","S̶","Strike")}</div><span class="label">Text Markup</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("sticky","📝","Sticky Note")}${toolBtn("text","T","Text Box")}</div><span class="label">Notes</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("stamp_approved","✓","Approved")}${toolBtn("stamp_draft","D","Draft")}${toolBtn("stamp_final","F","Final")}${toolBtn("stamp_completed","✓","Completed")}${toolBtn("stamp_confidential","🔒","Confidential")}${toolBtn("stamp_received","📥","Received")}${toolBtn("stamp_reviewed","👁","Reviewed")}${toolBtn("stamp_void","✗","VOID")}</div><span class="label">Stamps</span></div>${styleControls()}`;
+  return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("highlight","🖍","Highlight")}${toolBtn("underline","U̲","Underline")}${toolBtn("strike","S̶","Strike")}</div><span class="label">Text Markup</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("sticky","📝","Sticky Note")}${toolBtn("text","T","Text Box")}</div><span class="label">Notes</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("cloud_review","☁","Cloud + Note")}${toolBtn("cloud","☁","Cloud Only")}</div><span class="label">Design Review</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showReviewList()"><span class="icon">📋</span><span class="text">Review List</span></button><button class="rbtn" onclick="exportReviewList('csv')"><span class="icon">📊</span><span class="text">Export CSV</span></button><button class="rbtn" onclick="exportReviewList('txt')"><span class="icon">📄</span><span class="text">Export TXT</span></button></div><span class="label">Review Output</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("stamp_approved","✓","Approved")}${toolBtn("stamp_draft","D","Draft")}${toolBtn("stamp_final","F","Final")}${toolBtn("stamp_completed","✓","Completed")}${toolBtn("stamp_confidential","🔒","Confidential")}${toolBtn("stamp_received","📥","Received")}${toolBtn("stamp_reviewed","👁","Reviewed")}${toolBtn("stamp_void","✗","VOID")}</div><span class="label">Stamps</span></div>${styleControls()}`;
 }
 function RIBBON_DRAW() {
   return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("eraser","🗑","Eraser")}</div><span class="label">Tools</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("freehand","✏️","Pen")}${toolBtn("rect","▭","Rectangle")}${toolBtn("ellipse","◯","Ellipse")}${toolBtn("line","╱","Line")}${toolBtn("arrow","→","Arrow")}${toolBtn("cloud","☁","Cloud")}</div><span class="label">Shapes</span></div><div class="ribbon-group"><div class="buttons"><label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;"><input type="checkbox" id="toolFill" ${State.toolFill?"checked":""} /> Fill</label></div><span class="label">Options</span></div>${styleControls()}`;
@@ -909,13 +1011,36 @@ function renderThumbnails() {
   return html;
 }
 function renderCommentsList() {
-  const anns = Object.values(State.annotations).filter(a => a.body || Object.values(State.comments).some(c => c.annotationId === a.id));
+  // Include review clouds (with or without body text) plus any annotated item
+  const anns = Object.values(State.annotations).filter(a =>
+    a.kind === "cloud_review" || a.body || Object.values(State.comments).some(c => c.annotationId === a.id)
+  ).sort((a, b) => {
+    // Review clouds first, ordered by issue number; then others
+    if (a.kind === "cloud_review" && b.kind !== "cloud_review") return -1;
+    if (a.kind !== "cloud_review" && b.kind === "cloud_review") return 1;
+    if (a.kind === "cloud_review" && b.kind === "cloud_review") return (a.issueNumber || 0) - (b.issueNumber || 0);
+    return a.createdAt.localeCompare(b.createdAt);
+  });
   let html = '<input type="text" value="' + State.author + '" onchange="State.author=this.value;localStorage.setItem(\'opdf-author\',this.value);" style="width:100%;padding:4px;margin-bottom:8px;" placeholder="Your name" />';
+  const reviewCount = anns.filter(a => a.kind === "cloud_review").length;
+  if (reviewCount > 0) {
+    html += `<div style="font-size:10px;font-weight:600;color:#6b7280;padding:2px 4px 6px;text-transform:uppercase;letter-spacing:0.5px;">Design Review — ${reviewCount} issue${reviewCount > 1 ? "s" : ""}</div>`;
+  }
   if (anns.length === 0) return html + '<p style="color:#9ca3af;padding:8px;">No comments yet. Add a sticky note or annotation, then click it to add a comment.</p>';
   for (const a of anns) {
     const comments = Object.values(State.comments).filter(c => c.annotationId === a.id).sort((x, y) => x.createdAt.localeCompare(y.createdAt));
     const latest = comments[comments.length - 1];
-    html += `<div class="comment-item ${State.selectedAnnotationId===a.id?"selected":""}" onclick="selectAnnotation('${a.id}');goToPage(${a.pageNumber})"><div class="head"><span class="author">${a.author}</span>${latest && latest.status && latest.status !== "none" ? `<span class="status ${latest.status}">${latest.status}</span>` : ""}</div><div class="body">p.${a.pageNumber} — ${a.kind}: ${a.body || (comments[0]?.body || "(no text)")}</div><div class="reply-btn" onclick="event.stopPropagation();UI.openCommentPanel('${a.id}')">Reply →</div></div>`;
+    const isReview = a.kind === "cloud_review";
+    const statusBadge = isReview
+      ? `<span class="status ${a.reviewStatus === "open" ? "rejected" : a.reviewStatus}" style="background:${REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"};color:white;">${a.reviewStatus || "open"}</span>`
+      : (latest && latest.status && latest.status !== "none" ? `<span class="status ${latest.status}">${latest.status}</span>` : "");
+    const title = isReview
+      ? `#${a.issueNumber} — p.${a.pageNumber}`
+      : `p.${a.pageNumber} — ${a.kind}`;
+    const bodyText = isReview
+      ? (a.body || "(no comment — click to add)")
+      : (a.body || (comments[0]?.body || "(no text)"));
+    html += `<div class="comment-item ${State.selectedAnnotationId===a.id?"selected":""}" onclick="selectAnnotation('${a.id}');goToPage(${a.pageNumber})"><div class="head"><span class="author">${isReview ? "#" + a.issueNumber + " " : ""}${a.author}</span>${statusBadge}</div><div class="body">${title}: ${bodyText}</div><div class="reply-btn" onclick="event.stopPropagation();UI.openCommentPanel('${a.id}')">${isReview ? "Open →" : "Reply →"}</div></div>`;
   }
   return html;
 }
@@ -942,6 +1067,92 @@ function removeBookmark(id) {
   UI.renderSidebar();
 }
 window.removeBookmark = removeBookmark;
+
+// ===== Design Review: list + export =====
+function getReviewItems() {
+  return Object.values(State.annotations)
+    .filter(a => a.kind === "cloud_review")
+    .sort((a, b) => (a.issueNumber || 0) - (b.issueNumber || 0));
+}
+
+window.showReviewList = () => {
+  const items = getReviewItems();
+  if (items.length === 0) {
+    showModal(`<h3>Design Review List</h3><p>No review clouds yet. Use the <strong>Cloud + Note</strong> tool on the Annotate tab to mark issues on the drawing, then add comments.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
+    return;
+  }
+  const rows = items.map(a => {
+    const comments = Object.values(State.comments).filter(c => c.annotationId === a.id);
+    const cmtText = [a.body, ...comments.map(c => c.body)].filter(Boolean).join(" | ");
+    return `<tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:6px 8px;font-weight:700;">#${a.issueNumber}</td>
+      <td style="padding:6px 8px;text-align:center;">${a.pageNumber}</td>
+      <td style="padding:6px 8px;text-align:center;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"};"></span> ${a.reviewStatus || "open"}</td>
+      <td style="padding:6px 8px;">${a.author}</td>
+      <td style="padding:6px 8px;">${cmtText || "<em style='color:#9ca3af;'>(no comment)</em>"}</td>
+      <td style="padding:6px 8px;"><button onclick="closeModal();selectAnnotation('${a.id}');goToPage(${a.pageNumber})" style="padding:2px 8px;font-size:11px;cursor:pointer;border:1px solid #d1d5db;background:#fff;border-radius:3px;">Go →</button></td>
+    </tr>`;
+  }).join("");
+  showModal(`<h3>Design Review List — ${items.length} issue${items.length > 1 ? "s" : ""}</h3>
+    <div style="max-height:300px;overflow-y:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="border-bottom:2px solid #d1d5db;text-align:left;color:#6b7280;font-size:11px;text-transform:uppercase;">
+        <th style="padding:6px 8px;">#</th><th style="padding:6px 8px;">Page</th><th style="padding:6px 8px;">Status</th><th style="padding:6px 8px;">Author</th><th style="padding:6px 8px;">Comment</th><th></th>
+      </tr></thead><tbody>${rows}</tbody>
+    </table></div>
+    <div class="actions">
+      <button onclick="exportReviewList('csv')">Export CSV</button>
+      <button onclick="exportReviewList('txt')">Export TXT</button>
+      <button class="primary" onclick="closeModal()">Close</button>
+    </div>`);
+};
+
+window.exportReviewList = (format) => {
+  const items = getReviewItems();
+  if (items.length === 0) { toast("No review clouds to export"); return; }
+  const esc = (s) => String(s ?? "").replace(/"/g, '""');
+  let content = "", ext = format === "csv" ? "csv" : "txt";
+  if (format === "csv") {
+    content = "Issue #,Page,Status,Author,Date,Comment,Replies\n";
+    for (const a of items) {
+      const comments = Object.values(State.comments).filter(c => c.annotationId === a.id);
+      const replies = comments.map(c => c.body).filter(Boolean).join(" | ");
+      content += `${a.issueNumber},${a.pageNumber},${a.reviewStatus || "open"},"${esc(a.author)}","${a.createdAt}","${esc(a.body || "")}","${esc(replies)}"\n`;
+    }
+  } else {
+    content = `DESIGN REVIEW — ${State.fileName || "document"}\n`;
+    content += `Generated: ${new Date().toLocaleString()}\n`;
+    content += `Issues: ${items.length}\n`;
+    content += "=".repeat(60) + "\n\n";
+    for (const a of items) {
+      const comments = Object.values(State.comments).filter(c => c.annotationId === a.id);
+      content += `Issue #${a.issueNumber} — Page ${a.pageNumber} — Status: ${(a.reviewStatus || "open").toUpperCase()}\n`;
+      content += `By: ${a.author}  Date: ${new Date(a.createdAt).toLocaleString()}\n`;
+      content += `Comment: ${a.body || "(none)"}\n`;
+      for (const c of comments) content += `  ↳ ${c.author}: ${c.body} ${c.status && c.status !== "none" ? `[${c.status}]` : ""}\n`;
+      content += "-".repeat(60) + "\n";
+    }
+  }
+  const outName = (State.fileName || "document").replace(/\.pdf$/i, "") + "-review." + ext;
+  const blob = new Blob([content], { type: format === "csv" ? "text/csv" : "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = outName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("Exported " + outName);
+};
+
+// Set review status on a cloud mark (open/accepted/rejected/completed)
+window.setReviewStatus = (annotationId, status) => {
+  const a = State.annotations[annotationId];
+  if (!a) return;
+  a.reviewStatus = status;
+  renderPage(State.currentPage);
+  UI.renderSidebar();
+  if (document.getElementById("modalOverlay")) closeModal();
+  toast("Issue #" + (a.issueNumber ?? "?") + " marked " + status);
+};
 
 
 // ===== Ribbon handlers =====

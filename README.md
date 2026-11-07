@@ -11,7 +11,7 @@ A complete, open-source **desktop PDF editor** with annotations, drawing, page o
 | Tab | Features |
 |---|---|
 | **HOME** | Open, Save, Undo/Redo, Select, Hand, Zoom, Page nav, Style controls (color, width, opacity, font size) |
-| **ANNOTATE** | Highlight, Underline, Strikethrough, Sticky Note, Text Box, **8 Stamps** (Approved, Draft, Final, Completed, Confidential, Received, Reviewed, VOID) |
+| **ANNOTATE** | Highlight, Underline, Strikethrough, Sticky Note, Text Box, **Design Review** (Cloud+Note with numbered issue badges, Cloud only, Review List, Export CSV/TXT), **8 Stamps** |
 | **DRAW** | Freehand Pen, Rectangle, Ellipse, Line, Arrow, Cloud, Eraser, Fill toggle |
 | **PAGE** | Rotate ←/→, Extract, Delete, Insert, Move, Split, Merge, Crop |
 | **EDIT** | Add Text, Whiteout, Add Image, Properties editor (title/author/subject/keywords) |
@@ -22,6 +22,20 @@ A complete, open-source **desktop PDF editor** with annotations, drawing, page o
 - **Pages** — thumbnails with per-page rotate/delete buttons
 - **Comments** — full comment list with author + status badges
 - **Bookmarks** — saved in localStorage between sessions
+
+### Design Review (cloud marks with comments)
+Acrobat/Bluebeam-style design review workflow:
+- **Cloud + Note** tool — draws a scalloped cloud around an issue area, auto-assigns an issue number (#1, #2, …), and immediately opens a comment panel to describe the issue
+- **Cloud only** tool — plain cloud outline without comment (for visual grouping only)
+- Each review cloud shows a **numbered status badge** at its top-right corner:
+  - 🟠 orange = open
+  - 🟢 green = accepted
+  - 🔴 red = rejected
+  - 🔵 teal = completed
+- Change status per issue from the comment panel (Open / Accepted / Rejected / Completed)
+- **Review List** modal — table of all issues (#, page, status, author, comment) with click-to-navigate
+- **Export CSV / TXT** — download the full issue list with replies for sharing
+- Review clouds appear in the Comments sidebar grouped as "Design Review", ordered by issue number
 
 ### Page Operations (all persist to PDF via pdf-lib)
 - Rotate page 90° left/right
