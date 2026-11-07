@@ -125,6 +125,110 @@ input[type=number], input[type=text] { padding: 3px 6px; font-size: 12px; border
 .stamp { position: absolute; z-index: 60; border: 2.5px solid currentColor; padding: 4px 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px; border-radius: 2px; background: rgba(255,255,255,0.7); display: inline-block; white-space: nowrap; transform: rotate(-4deg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); cursor: move; }
 .text-box { position: absolute; z-index: 60; background: transparent; border: 0; outline: 0; resize: none; padding: 2px; font-family: Helvetica, Arial, sans-serif; }
 .text-box:focus { outline: 1.5px solid #ea580c; background: rgba(255,255,255,0.5); }
+
+/* ===== Search bar (Ctrl+F) ===== */
+.search-bar { position: sticky; top: 0; z-index: 500; align-self: flex-end; display: flex; gap: 6px; align-items: center; background: white; border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+.search-bar input[type=text] { width: 190px; border: 0; outline: 0; font-size: 12px; background: transparent; font-family: inherit; }
+.search-bar .cnt { font-size: 11px; color: #6b7280; min-width: 54px; text-align: center; }
+.search-bar button { background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; font-size: 13px; padding: 2px 7px; color: #374151; }
+.search-bar button:hover { background: #f3f4f6; }
+.search-bar label.cs { display: flex; align-items: center; gap: 3px; font-size: 11px; color: #6b7280; cursor: pointer; user-select: none; }
+.search-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.search-hl { background: rgba(250, 204, 21, 0.45); border-radius: 2px; }
+.search-hl.current { background: rgba(249, 115, 22, 0.6); outline: 2px solid #ea580c; }
+
+/* ===== Welcome: recent files ===== */
+.wr-title { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e5e7eb; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+.wr-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-top: 4px; border-radius: 6px; cursor: pointer; font-size: 12px; color: #374151; }
+.wr-item:hover { background: #fff7ed; color: #ea580c; }
+.wr-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wr-item em { font-style: normal; font-size: 10px; color: #9ca3af; }
+.recent-row { display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+.sc-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sc-table td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+.sc-table td:first-child { font-family: ui-monospace, Consolas, monospace; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 3px 8px; width: 150px; white-space: nowrap; }
+
+/* ===== Dark-mode-aware panel components ===== */
+.panel-card { background: #f9fafb; padding: 6px; border-radius: 4px; margin-bottom: 4px; }
+.panel-btn { background: white; border: 1px solid #d1d5db; padding: 6px; border-radius: 4px; cursor: pointer; color: #374151; }
+.panel-btn:hover { background: #f9fafb; }
+.panel-btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 6px; border-radius: 4px; cursor: pointer; }
+.panel-review-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+
+/* ===== Dark mode ===== */
+body.dark { background: #111827; color: #e5e7eb; }
+body.dark .topbar { background: #1f2937; border-bottom-color: #374151; }
+body.dark .topbar h1 { color: #f9fafb; }
+body.dark .topbar .filename { color: #9ca3af; }
+body.dark .topbar button.secondary { background: #374151; color: #e5e7eb; border-color: #4b5563; }
+body.dark .topbar button.secondary:hover { background: #4b5563; }
+body.dark .ribbon-tabs { background: #1f2937; border-bottom-color: #374151; }
+body.dark .ribbon-tabs button { color: #9ca3af; }
+body.dark .ribbon-tabs button:hover { background: #374151; color: #fb923c; }
+body.dark .ribbon-tabs button.active { color: #fb923c; border-bottom-color: #fb923c; }
+body.dark .ribbon { background: #111827; border-bottom-color: #374151; }
+body.dark .ribbon-group { border-right-color: #374151; }
+body.dark .ribbon-group .label { color: #9ca3af; }
+body.dark .rbtn { color: #d1d5db; }
+body.dark .rbtn:hover { background: #374151; border-color: #4b5563; }
+body.dark .rbtn.active { background: #431407; border-color: #fb923c; color: #fb923c; }
+body.dark .color-swatch { box-shadow: 0 0 0 1px #4b5563; }
+body.dark input[type=number], body.dark input[type=text] { background: #1f2937; color: #e5e7eb; border-color: #4b5563; }
+body.dark input[type=color] { border-color: #4b5563; }
+body.dark .sidebar { background: #1f2937; border-right-color: #374151; }
+body.dark .sidebar-tabs { border-bottom-color: #374151; }
+body.dark .sidebar-tabs button { color: #9ca3af; }
+body.dark .sidebar-tabs button:hover { background: #374151; }
+body.dark .sidebar-tabs button.active { color: #fb923c; border-bottom-color: #fb923c; }
+body.dark .sidebar-content::-webkit-scrollbar-thumb { background: #4b5563; }
+body.dark .thumb:hover { background: #374151; }
+body.dark .thumb.active { border-color: #fb923c; background: #431407; }
+body.dark .thumb .thumb-actions { background: #1f2937; }
+body.dark .thumb .thumb-actions button { color: #d1d5db; }
+body.dark .comment-item { background: #1f2937; border-color: #374151; }
+body.dark .comment-item.selected { border-color: #fb923c; background: #431407; }
+body.dark .comment-item .author { color: #e5e7eb; }
+body.dark .comment-item .body { color: #d1d5db; }
+body.dark .status.accepted { background: #064e3b; color: #a7f3d0; }
+body.dark .status.rejected { background: #7f1d1d; color: #fecaca; }
+body.dark .status.completed { background: #1e3a8a; color: #bfdbfe; }
+body.dark .bookmark-item { color: #e5e7eb; }
+body.dark .bookmark-item:hover { background: #374151; }
+body.dark .viewer { background: #0b0f19; }
+body.dark .right-panel { background: #1f2937; border-left-color: #374151; }
+body.dark .right-panel .body label { color: #9ca3af; }
+body.dark .right-panel .body input, body.dark .right-panel .body textarea, body.dark .right-panel .body select { background: #1f2937; color: #e5e7eb; border-color: #4b5563; }
+body.dark .statusbar { background: #1f2937; border-top-color: #374151; color: #9ca3af; }
+body.dark .welcome-card { background: #1f2937; }
+body.dark .welcome-card h2 { color: #f9fafb; }
+body.dark .welcome-card p { color: #9ca3af; }
+body.dark .welcome-card .features { border-top-color: #374151; color: #9ca3af; }
+body.dark .wr-title { border-top-color: #374151; }
+body.dark .wr-item { color: #d1d5db; }
+body.dark .wr-item:hover { background: #431407; color: #fb923c; }
+body.dark .spinner { border-color: #374151; border-top-color: #fb923c; }
+body.dark .error-box { background: #450a0a; border-color: #7f1d1d; color: #fecaca; }
+body.dark .modal { background: #1f2937; }
+body.dark .modal h3 { color: #f9fafb; }
+body.dark .modal p { color: #9ca3af; }
+body.dark .recent-row { border-bottom-color: #374151; color: #e5e7eb; }
+body.dark .sc-table td { border-bottom-color: #374151; }
+body.dark .sc-table td:first-child { background: #111827; border-color: #374151; }
+body.dark .panel-card { background: #374151; }
+body.dark .panel-btn { background: #1f2937; border-color: #4b5563; color: #e5e7eb; }
+body.dark .panel-btn:hover { background: #374151; }
+body.dark .panel-btn-danger { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
+body.dark .panel-review-box { background: #431407; border-color: #9a3412; }
+body.dark .search-bar { background: #1f2937; border-color: #4b5563; }
+body.dark .search-bar input[type=text] { color: #e5e7eb; }
+body.dark .search-bar .cnt { color: #9ca3af; }
+body.dark .search-bar button { color: #d1d5db; }
+body.dark .search-bar button:hover { background: #374151; }
+/* dark-mode catch-alls for inline-styled modal content */
+body.dark .modal [style*="background:#fff"] { background: #374151 !important; color: #e5e7eb; }
+body.dark .modal [style*="#e5e7eb"], body.dark .modal [style*="#d1d5db"] { border-color: #374151 !important; }
+body.dark .modal [style*="background:#f9fafb"] { background: #374151 !important; }
+body.dark .right-panel .body [style*="background:#f9fafb"] { background: #374151 !important; }
 </style>
 </head>
 <body>
@@ -164,6 +268,14 @@ input[type=number], input[type=text] { padding: 3px 6px; font-size: 12px; border
   </div>
 
   <div class="viewer" id="viewer">
+    <div class="search-bar" id="searchBar" style="display:none;">
+      <input type="text" id="searchInput" placeholder="Find in document…" />
+      <span class="cnt" id="searchCount">0 / 0</span>
+      <button id="searchPrev" title="Previous match (Shift+Enter)">↑</button>
+      <button id="searchNext" title="Next match (Enter)">↓</button>
+      <label class="cs" title="Match case"><input type="checkbox" id="searchCase" /> Aa</label>
+      <button id="searchClose" title="Close (Esc)">×</button>
+    </div>
     <div id="viewerContent">
       <div class="welcome-overlay" id="welcomeOverlay">
         <div class="welcome-card">
@@ -182,6 +294,7 @@ input[type=number], input[type=text] { padding: 3px 6px; font-size: 12px; border
             <div>Properties editor</div>
             <div>Export as images</div>
           </div>
+          <div id="welcomeRecent" style="display:none;"></div>
         </div>
       </div>
     </div>
@@ -199,7 +312,7 @@ input[type=number], input[type=text] { padding: 3px 6px; font-size: 12px; border
 <!-- Status bar -->
 <div class="statusbar">
   <span id="status">Ready</span>
-  <span>Open PDF Writer Pro v2.0.2 — MIT License</span>
+  <span>Open PDF Writer Pro v2.1.0 — MIT License</span>
 </div>
 
 <input type="file" id="fileInput" accept="application/pdf,.pdf" style="display:none" />
@@ -225,6 +338,10 @@ const State = {
   nextIssueNumber: 1,
   bookmarks: JSON.parse(localStorage.getItem("opdf-bookmarks") || "[]"),
   author: localStorage.getItem("opdf-author") || "You",
+  darkMode: localStorage.getItem("opdf-dark") === "1",
+  recent: JSON.parse(localStorage.getItem("opdf-recent") || "[]"),
+  textCache: {},
+  search: null,
 };
 window.State = State;
 
@@ -277,6 +394,7 @@ async function renderPage(pageNum) {
   viewer.appendChild(container);
   renderAnnotationsForPage(pageNum);
   attachToolHandlers(container, pageNum);
+  renderSearchHighlights(container, pageNum, viewport);
   // Null checks — these elements only exist when the Home tab ribbon is rendered
   const pageInput = document.getElementById("pageInput");
   if (pageInput) pageInput.value = pageNum;
@@ -287,6 +405,217 @@ async function renderPage(pageNum) {
 function annotationsForPage(pageNum) {
   return Object.values(State.annotations).filter(a => a.pageNumber === pageNum);
 }
+
+// ===== Full-text search (Ctrl+F) =====
+let searchSeq = 0;
+
+function openSearch() {
+  const bar = document.getElementById("searchBar");
+  if (!bar) return;
+  bar.style.display = "flex";
+  const inp = document.getElementById("searchInput");
+  inp.focus();
+  inp.select();
+  if (inp.value) runSearch();
+}
+window.openSearch = openSearch;
+
+function closeSearch() {
+  const bar = document.getElementById("searchBar");
+  if (bar) bar.style.display = "none";
+  const inp = document.getElementById("searchInput");
+  if (inp) inp.value = "";
+  State.search = null; searchSeq++;
+  updateSearchCount();
+  if (State.pdf) renderPage(State.currentPage);
+}
+window.closeSearch = closeSearch;
+
+async function getTextItems(p) {
+  if (State.textCache[p]) return State.textCache[p];
+  const page = await State.pdf.getPage(p);
+  const tc = await page.getTextContent();
+  State.textCache[p] = tc.items;
+  return tc.items;
+}
+window.getTextItems = getTextItems;
+
+async function runSearch() {
+  if (!State.pdf) return;
+  const q = document.getElementById("searchInput").value;
+  const cs = document.getElementById("searchCase").checked;
+  const seq = ++searchSeq;
+  if (!q.trim()) { State.search = null; updateSearchCount(); renderPage(State.currentPage); return; }
+  const needle = cs ? q : q.toLowerCase();
+  const matches = [];
+  for (let p = 1; p <= State.pdf.numPages; p++) {
+    const items = await getTextItems(p);
+    if (seq !== searchSeq) return; // stale request
+    items.forEach((it, idx) => {
+      if (!it.str || !it.str.length) return;
+      const hay = cs ? it.str : it.str.toLowerCase();
+      let pos = 0;
+      for (;;) {
+        const i = hay.indexOf(needle, pos);
+        if (i === -1) break;
+        matches.push({ page: p, itemIndex: idx, start: i, len: q.length });
+        pos = i + Math.max(1, needle.length);
+      }
+    });
+  }
+  State.search = { query: q, caseSensitive: cs, matches, current: matches.length ? 0 : -1 };
+  updateSearchCount();
+  if (matches.length) await gotoMatch(0);
+  else { toast('No matches for "' + q + '"'); renderPage(State.currentPage); }
+}
+window.runSearch = runSearch;
+
+function updateSearchCount() {
+  const el = document.getElementById("searchCount");
+  if (!el) return;
+  const S = State.search;
+  el.textContent = S ? ((S.current + 1) + " / " + S.matches.length) : "0 / 0";
+}
+
+async function gotoMatch(delta) {
+  const S = State.search;
+  if (!S || S.matches.length === 0) return;
+  const N = S.matches.length;
+  S.current = ((S.current + delta) % N + N) % N;
+  const m = S.matches[S.current];
+  // Re-render if we changed page OR no highlight layer exists yet (first search on current page)
+  if (m.page !== State.currentPage || !document.querySelector(".search-layer")) {
+    await renderPage(m.page);
+  }
+  document.querySelectorAll(".search-hl").forEach(e => e.classList.toggle("current", Number(e.dataset.mi) === S.current));
+  const el = document.querySelector(".search-hl.current");
+  if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  updateSearchCount();
+}
+window.gotoMatch = gotoMatch;
+
+function renderSearchHighlights(container, pageNum, viewport) {
+  const old = container.querySelector(".search-layer"); if (old) old.remove();
+  const S = State.search;
+  if (!S || !S.query || !State.textCache[pageNum]) return;
+  const items = State.textCache[pageNum];
+  const layer = document.createElement("div");
+  layer.className = "search-layer";
+  for (let k = 0; k < S.matches.length; k++) {
+    const m = S.matches[k];
+    if (m.page !== pageNum) continue;
+    const it = items[m.itemIndex]; if (!it) continue;
+    const tx = pdfjsLib.Util.transform(viewport.transform, it.transform);
+    const fh = Math.hypot(tx[2], tx[3]) || 10;
+    const w = (it.width || 0) * viewport.scale;
+    const strLen = Math.max(it.str.length, 1);
+    const left = tx[4] + (m.start / strLen) * w;
+    const width = Math.max((m.len / strLen) * w, 4);
+    const div = document.createElement("div");
+    div.className = "search-hl" + (k === S.current ? " current" : "");
+    div.dataset.mi = k;
+    div.style.cssText = `position:absolute;left:${left}px;top:${tx[5] - fh}px;width:${width}px;height:${Math.max(fh * 1.25, 8)}px;`;
+    layer.appendChild(div);
+  }
+  container.appendChild(layer);
+}
+window.renderSearchHighlights = renderSearchHighlights;
+
+// ===== Dark mode =====
+function toggleDarkMode() {
+  State.darkMode = !State.darkMode;
+  localStorage.setItem("opdf-dark", State.darkMode ? "1" : "0");
+  document.body.classList.toggle("dark", State.darkMode);
+  UI.renderRibbon();
+}
+window.toggleDarkMode = toggleDarkMode;
+
+// ===== Recent files =====
+function escHtml(s) {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+window.escHtml = escHtml;
+
+function pushRecent(name, filePath) {
+  if (!filePath) return;
+  State.recent = State.recent.filter(r => r.path !== filePath);
+  State.recent.unshift({ name, path: filePath, at: Date.now() });
+  State.recent = State.recent.slice(0, 10);
+  localStorage.setItem("opdf-recent", JSON.stringify(State.recent));
+  renderWelcomeRecent();
+}
+window.pushRecent = pushRecent;
+
+function renderWelcomeRecent() {
+  const box = document.getElementById("welcomeRecent");
+  if (!box) return;
+  const canOpen = !!(window.electronAPI && window.electronAPI.openRecent);
+  if (!canOpen || State.recent.length === 0) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  box.innerHTML = `<div class="wr-title">Recent files</div>` + State.recent.map((r, i) =>
+    `<div class="wr-item" onclick="openRecentFile(${i})" title="${escHtml(r.path)}">📄 <span>${escHtml(r.name)}</span><em>${new Date(r.at).toLocaleDateString()}</em></div>`).join("");
+}
+window.renderWelcomeRecent = renderWelcomeRecent;
+
+async function openRecentFile(i) {
+  const r = State.recent[i]; if (!r) return;
+  if (window.electronAPI && window.electronAPI.openRecent) {
+    const res = await window.electronAPI.openRecent(r.path);
+    if (res && res.base64) {
+      await loadPdfFromBase64(res.base64, res.fileName, res.filePath);
+    } else {
+      toast("Could not open — the file may have been moved or deleted");
+      State.recent = State.recent.filter(x => x.path !== r.path);
+      localStorage.setItem("opdf-recent", JSON.stringify(State.recent));
+      renderWelcomeRecent();
+    }
+  }
+}
+window.openRecentFile = openRecentFile;
+
+function showRecentModal() {
+  if (!State.recent.length) { toast("No recent files yet — open a PDF to start the list"); return; }
+  showModal(`<h3>Recent files</h3>` +
+    State.recent.map((r, i) => `<div class="recent-row"><span onclick="openRecentFile(${i});closeModal()" style="cursor:pointer;flex:1;">📄 <strong>${escHtml(r.name)}</strong><br><span style="font-size:10px;color:#9ca3af;">${escHtml(r.path)}</span></span><span style="font-size:10px;color:#9ca3af;white-space:nowrap;">${new Date(r.at).toLocaleDateString()}</span></div>`).join("") +
+    `<div class="actions"><button onclick="clearRecent();closeModal()">Clear list</button><button class="primary" onclick="closeModal()">Close</button></div>`);
+}
+window.showRecentModal = showRecentModal;
+
+function clearRecent() {
+  State.recent = [];
+  localStorage.setItem("opdf-recent", "[]");
+  renderWelcomeRecent();
+  toast("Recent list cleared");
+}
+window.clearRecent = clearRecent;
+
+// ===== Tool keyboard shortcuts =====
+const TOOL_KEYS = { v: "select", h: "hand", u: "highlight", w: "underline", s: "strike", n: "sticky", t: "text", p: "freehand", r: "rect", o: "ellipse", l: "line", a: "arrow", c: "cloud", d: "cloud_review", e: "eraser" };
+const TOOL_TAB = { select: "home", hand: "home", highlight: "annotate", underline: "annotate", strike: "annotate", sticky: "annotate", text: "annotate", cloud_review: "annotate", cloud: "draw", freehand: "draw", rect: "draw", ellipse: "draw", line: "draw", arrow: "draw", eraser: "draw" };
+
+function showShortcutsModal() {
+  const row = (k, a) => `<tr><td>${k}</td><td>${a}</td></tr>`;
+  showModal(`<h3>Keyboard Shortcuts</h3>
+    <table class="sc-table"><tbody>
+    ${row("Ctrl + O / Ctrl + S", "Open / Save PDF")}
+    ${row("Ctrl + F", "Find text in document")}
+    ${row("Enter / Shift + Enter", "Next / previous search match")}
+    ${row("F3 / Shift + F3", "Next / previous search match")}
+    ${row("Ctrl + Z / Ctrl + Y", "Undo / Redo")}
+    ${row("Ctrl + + / Ctrl + −", "Zoom in / zoom out")}
+    ${row("← / →", "Previous / next page")}
+    ${row("V / H", "Select / Hand tool")}
+    ${row("U / W / S", "Highlight / Underline / Strikethrough")}
+    ${row("N / T", "Sticky note / Text box")}
+    ${row("P / R / O", "Pen / Rectangle / Ellipse")}
+    ${row("L / A / C", "Line / Arrow / Cloud")}
+    ${row("D / E", "Cloud + Note (design review) / Eraser")}
+    ${row("Delete", "Delete selected annotation")}
+    ${row("Esc", "Close dialogs and panels")}
+    </tbody></table>
+    <div class="actions"><button class="primary" onclick="closeModal()">Close</button></div>`);
+}
+window.showShortcutsModal = showShortcutsModal;
 
 function renderAnnotationsForPage(pageNum) {
   const layer = document.querySelector(`.annotation-layer[data-page-num="${pageNum}"]`);
@@ -697,7 +1026,7 @@ const UI = {
   openPdf: async function() {
     if (window.electronAPI && window.electronAPI.isElectron) {
       const result = await window.electronAPI.openPdf();
-      if (result && result.base64) await loadPdfFromBase64(result.base64, result.fileName);
+      if (result && result.base64) await loadPdfFromBase64(result.base64, result.fileName, result.filePath);
     } else {
       document.getElementById("fileInput").click();
     }
@@ -755,23 +1084,23 @@ const UI = {
       <label>Issue Status</label>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
         ${["open","accepted","rejected","completed"].map(s => `
-          <button onclick="setReviewStatus('${annotationId}','${s}')" style="flex:1;min-width:60px;padding:5px;border:${a.reviewStatus === s ? "2px solid " + REVIEW_STATUS_COLORS[s] : "1px solid #d1d5db"};background:${a.reviewStatus === s ? REVIEW_STATUS_COLORS[s] : "white"};color:${a.reviewStatus === s ? "white" : "#374151"};border-radius:4px;cursor:pointer;font-size:11px;text-transform:capitalize;">${s}</button>
+          <button onclick="setReviewStatus('${annotationId}','${s}')" style="flex:1;min-width:60px;padding:5px;border:${a.reviewStatus === s ? "2px solid " + REVIEW_STATUS_COLORS[s] : "1px solid #4b5563"};background:${a.reviewStatus === s ? REVIEW_STATUS_COLORS[s] : "transparent"};color:${a.reviewStatus === s ? "white" : "inherit"};border-radius:4px;cursor:pointer;font-size:11px;text-transform:capitalize;">${s}</button>
         `).join("")}
       </div>` : "";
     const html = `
-      ${isReview ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:8px;margin-bottom:8px;"><strong>Issue #${a.issueNumber ?? "?"}</strong> — Page ${a.pageNumber}<br><span style="font-size:10px;color:#6b7280;">Status: <span style="color:${REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"};font-weight:700;">${(a.reviewStatus || "open").toUpperCase()}</span></span></div>` : ""}
+      ${isReview ? `<div class="panel-review-box"><strong>Issue #${a.issueNumber ?? "?"}</strong> — Page ${a.pageNumber}<br><span style="font-size:10px;color:#6b7280;">Status: <span style="color:${REVIEW_STATUS_COLORS[a.reviewStatus] || "#ea580c"};font-weight:700;">${(a.reviewStatus || "open").toUpperCase()}</span></span></div>` : ""}
       <label>Author</label><input type="text" id="annAuthor" value="${a.author}" />
       <label>${isReview ? "Issue description" : "Note"}</label><textarea id="annBody" ${isReview ? 'placeholder="Describe the issue…"' : ""}>${a.body || ""}</textarea>
       ${statusBlock}
       <label>Replies (${comments.length})</label>
-      ${comments.map(c => `<div style="background:#f9fafb;padding:6px;border-radius:4px;margin-bottom:4px;"><div style="display:flex;justify-content:space-between;"><strong>${c.author}</strong><span style="font-size:10px;color:#9ca3af;">${new Date(c.createdAt).toLocaleString()}</span></div><div>${c.body}</div>${c.status && c.status !== "none" ? `<span class="status ${c.status}">${c.status}</span>` : ""}</div>`).join("")}
+      ${comments.map(c => `<div class="panel-card"><div style="display:flex;justify-content:space-between;"><strong>${c.author}</strong><span style="font-size:10px;color:#9ca3af;">${new Date(c.createdAt).toLocaleString()}</span></div><div>${c.body}</div>${c.status && c.status !== "none" ? `<span class="status ${c.status}">${c.status}</span>` : ""}</div>`).join("")}
       <label>Add reply</label><textarea id="replyBody" placeholder="Type your reply…"></textarea>
       <div style="display:flex;gap:4px;margin-top:8px;">
         <button onclick="UI.addReply('${annotationId}')" style="flex:1;background:#ea580c;color:white;border:0;padding:6px;border-radius:4px;cursor:pointer;">Reply</button>
-        <button onclick="UI.setCommentStatus('${annotationId}', 'accepted')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✓ Accept</button>
-        <button onclick="UI.setCommentStatus('${annotationId}', 'rejected')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✗ Reject</button>
+        <button onclick="UI.setCommentStatus('${annotationId}', 'accepted')" class="panel-btn" style="flex:1;">✓ Accept</button>
+        <button onclick="UI.setCommentStatus('${annotationId}', 'rejected')" class="panel-btn" style="flex:1;">✗ Reject</button>
       </div>
-      <button onclick="UI.deleteAnnotation('${annotationId}')" style="width:100%;margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px;border-radius:4px;cursor:pointer;">🗑 Delete ${isReview ? "issue #" + (a.issueNumber ?? "?") : "annotation"}</button>
+      <button onclick="UI.deleteAnnotation('${annotationId}')" class="panel-btn-danger" style="width:100%;margin-top:8px;">🗑 Delete ${isReview ? "issue #" + (a.issueNumber ?? "?") : "annotation"}</button>
     `;
     this.openRightPanel(isReview ? "Design Review Issue" : "Comment", html);
     document.getElementById("annAuthor").oninput = (e) => { a.author = e.target.value; };
@@ -804,7 +1133,7 @@ const UI = {
 window.UI = UI;
 
 // ===== Load PDF =====
-async function loadPdfFromBase64(base64, fileName) {
+async function loadPdfFromBase64(base64, fileName, filePath) {
   document.getElementById("viewerContent").innerHTML = '<div class="spinner"></div>';
   document.getElementById("status").textContent = "Loading…";
   try {
@@ -813,10 +1142,13 @@ async function loadPdfFromBase64(base64, fileName) {
     State.currentPage = 1; State.viewRotation = 0;
     State.pageRotations = {}; State.annotations = {}; State.comments = {};
     State.selectedAnnotationId = null;
+    State.textCache = {}; State.search = null; searchSeq++;
+    updateSearchCount();
     State.pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
     document.getElementById("fileName").textContent = fileName;
     const pc = document.getElementById("pageCount"); if (pc) pc.textContent = "/ " + State.pdf.numPages;
     document.getElementById("welcomeOverlay")?.remove();
+    pushRecent(fileName, filePath);
     UI.renderRibbon(); UI.renderSidebar();
     await renderPage(1);
     document.getElementById("status").textContent = "Loaded " + fileName + " — " + State.pdf.numPages + " pages";
@@ -980,7 +1312,7 @@ function styleControls() {
   return `<div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;align-items:flex-start;">${colorSwatches()}<div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">W</label><input type="range" min="1" max="12" step="0.5" value="${State.toolStrokeWidth}" id="toolWidth" /><span style="font-size:10px;width:20px;">${State.toolStrokeWidth}</span></div><div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">O</label><input type="range" min="0.1" max="1" step="0.1" value="${State.toolOpacity}" id="toolOpacity" /><span style="font-size:10px;width:30px;">${Math.round(State.toolOpacity*100)}%</span></div><div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">Font</label><input type="number" min="6" max="72" value="${State.toolFontSize}" id="toolFontSize" style="width:50px;" /><span style="font-size:10px;">pt</span></div></div><span class="label">Style</span></div>`;
 }
 function RIBBON_HOME() {
-  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.openPdf()"><span class="icon">📂</span><span class="text">Open</span></button><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button></div><span class="label">File</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="undo()"><span class="icon">↶</span><span class="text">Undo</span></button><button class="rbtn" onclick="redo()"><span class="icon">↷</span><span class="text">Redo</span></button></div><span class="label">Edit</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("hand","✋","Hand")}</div><span class="label">Navigate</span></div><div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;"><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span></button><span id="zoomLabel" style="font-size:11px;width:40px;text-align:center;">100%</span><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span></button></div><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="prevPage()"><span class="icon">‹</span></button><input type="number" id="pageInput" value="1" min="1" style="width:40px;text-align:center;" onchange="goToPage(this.value)" /><span id="pageCount" style="font-size:11px;">/ 1</span><button class="rbtn" onclick="nextPage()"><span class="icon">›</span></button></div></div><span class="label">View</span></div>${styleControls()}`;
+  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.openPdf()"><span class="icon">📂</span><span class="text">Open</span></button><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button><button class="rbtn" onclick="showRecentModal()"><span class="icon">🕘</span><span class="text">Recent</span></button><button class="rbtn" onclick="openSearch()"><span class="icon">🔍</span><span class="text">Find</span></button></div><span class="label">File</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="undo()"><span class="icon">↶</span><span class="text">Undo</span></button><button class="rbtn" onclick="redo()"><span class="icon">↷</span><span class="text">Redo</span></button></div><span class="label">Edit</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("hand","✋","Hand")}</div><span class="label">Navigate</span></div><div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;"><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span></button><span id="zoomLabel" style="font-size:11px;width:40px;text-align:center;">100%</span><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span></button></div><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="prevPage()"><span class="icon">‹</span></button><input type="number" id="pageInput" value="1" min="1" style="width:40px;text-align:center;" onchange="goToPage(this.value)" /><span id="pageCount" style="font-size:11px;">/ 1</span><button class="rbtn" onclick="nextPage()"><span class="icon">›</span></button></div></div><span class="label">View</span></div>${styleControls()}`;
 }
 function RIBBON_ANNOTATE() {
   return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("highlight","🖍","Highlight")}${toolBtn("underline","U̲","Underline")}${toolBtn("strike","S̶","Strike")}</div><span class="label">Text Markup</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("sticky","📝","Sticky Note")}${toolBtn("text","T","Text Box")}</div><span class="label">Notes</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("cloud_review","☁","Cloud + Note")}${toolBtn("cloud","☁","Cloud Only")}</div><span class="label">Design Review</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showReviewList()"><span class="icon">📋</span><span class="text">Review List</span></button><button class="rbtn" onclick="exportReviewList('csv')"><span class="icon">📊</span><span class="text">Export CSV</span></button><button class="rbtn" onclick="exportReviewList('txt')"><span class="icon">📄</span><span class="text">Export TXT</span></button></div><span class="label">Review Output</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("stamp_approved","✓","Approved")}${toolBtn("stamp_draft","D","Draft")}${toolBtn("stamp_final","F","Final")}${toolBtn("stamp_completed","✓","Completed")}${toolBtn("stamp_confidential","🔒","Confidential")}${toolBtn("stamp_received","📥","Received")}${toolBtn("stamp_reviewed","👁","Reviewed")}${toolBtn("stamp_void","✗","VOID")}</div><span class="label">Stamps</span></div>${styleControls()}`;
@@ -998,7 +1330,7 @@ function RIBBON_TOOLS() {
   return `<div class="ribbon-group"><div class="buttons">${toolBtn("form_text","ab","Text Field")}${toolBtn("form_check","☑","Checkbox")}${toolBtn("form_radio","◉","Radio")}${toolBtn("form_signature","✍","Signature")}</div><span class="label">Form Fields</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showSecurityDialog()"><span class="icon">🔒</span><span class="text">Password</span></button><button class="rbtn" onclick="removePassword()"><span class="icon">🔓</span><span class="text">Remove Pwd</span></button></div><span class="label">Security</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="exportAsImages()"><span class="icon">🖼</span><span class="text">Export PNG</span></button><button class="rbtn" onclick="exportAsSinglePages()"><span class="icon">📄</span><span class="text">Single Pages</span></button></div><span class="label">Export</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button><button class="rbtn" onclick="window.print()"><span class="icon">🖨</span><span class="text">Print</span></button></div><span class="label">Output</span></div>`;
 }
 function RIBBON_VIEW() {
-  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span><span class="text">Zoom In</span></button><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span><span class="text">Zoom Out</span></button><button class="rbtn" onclick="State.zoom=1;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">1:1</span><span class="text">100%</span></button><button class="rbtn" onclick="State.zoom=0.5;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">⊖</span><span class="text">Fit</span></button></div><span class="label">Zoom</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="rotateView()"><span class="icon">⟳</span><span class="text">Rotate View</span></button><button class="rbtn" onclick="State.viewRotation=0;renderPage(State.currentPage);"><span class="icon">↑</span><span class="text">Reset</span></button></div><span class="label">Rotation</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.switchSidebar('thumbs')"><span class="icon">📑</span><span class="text">Thumbnails</span></button><button class="rbtn" onclick="UI.switchSidebar('comments')"><span class="icon">💬</span><span class="text">Comments</span></button><button class="rbtn" onclick="UI.switchSidebar('bookmarks')"><span class="icon">🔖</span><span class="text">Bookmarks</span></button></div><span class="label">Panels</span></div>`;
+  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="toggleDarkMode()"><span class="icon">${State.darkMode ? "☀" : "🌙"}</span><span class="text">${State.darkMode ? "Light Mode" : "Dark Mode"}</span></button><button class="rbtn" onclick="showShortcutsModal()"><span class="icon">⌨</span><span class="text">Shortcuts</span></button><button class="rbtn" onclick="openSearch()"><span class="icon">🔍</span><span class="text">Find</span></button></div><span class="label">Theme & Help</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span><span class="text">Zoom In</span></button><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span><span class="text">Zoom Out</span></button><button class="rbtn" onclick="State.zoom=1;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">1:1</span><span class="text">100%</span></button><button class="rbtn" onclick="State.zoom=0.5;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">⊖</span><span class="text">Fit</span></button></div><span class="label">Zoom</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="rotateView()"><span class="icon">⟳</span><span class="text">Rotate View</span></button><button class="rbtn" onclick="State.viewRotation=0;renderPage(State.currentPage);"><span class="icon">↑</span><span class="text">Reset</span></button></div><span class="label">Rotation</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.switchSidebar('thumbs')"><span class="icon">📑</span><span class="text">Thumbnails</span></button><button class="rbtn" onclick="UI.switchSidebar('comments')"><span class="icon">💬</span><span class="text">Comments</span></button><button class="rbtn" onclick="UI.switchSidebar('bookmarks')"><span class="icon">🔖</span><span class="text">Bookmarks</span></button></div><span class="label">Panels</span></div>`;
 }
 
 // ===== Sidebar renderers =====
@@ -1617,21 +1949,69 @@ document.addEventListener("keydown", (e) => {
   if (e.ctrlKey || e.metaKey) {
     if (e.key === "o") { e.preventDefault(); UI.openPdf(); }
     else if (e.key === "s") { e.preventDefault(); UI.savePdf(); }
+    else if (e.key === "f") { e.preventDefault(); openSearch(); }
     else if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
     else if ((e.key === "z" && e.shiftKey) || e.key === "y") { e.preventDefault(); redo(); }
     else if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomIn(); }
     else if (e.key === "-") { e.preventDefault(); zoomOut(); }
   } else if (e.key === "ArrowLeft" && State.pdf) prevPage();
   else if (e.key === "ArrowRight" && State.pdf) nextPage();
+  else if (e.key === "F3") {
+    e.preventDefault();
+    if (State.search && State.search.matches && State.search.matches.length) gotoMatch(e.shiftKey ? -1 : 1);
+    else openSearch();
+  }
+  else if ((e.key === "Delete" || e.key === "Backspace") && State.selectedAnnotationId) {
+    e.preventDefault();
+    deleteAnnotation(State.selectedAnnotationId);
+    UI.closeRightPanel();
+  }
   else if (e.key === "Escape") { closeModal(); UI.closeRightPanel(); }
+  else if (State.pdf && !e.altKey && TOOL_KEYS[e.key.toLowerCase()]) {
+    const t = TOOL_KEYS[e.key.toLowerCase()];
+    setActiveTool(t);
+    UI.switchTab(TOOL_TAB[t] || "home");
+  }
 });
+
+// ===== Search bar wiring =====
+{
+  const inp = document.getElementById("searchInput");
+  if (inp) {
+    let debounce = null;
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); gotoMatch(e.shiftKey ? -1 : 1); }
+      else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
+      e.stopPropagation();
+    });
+    inp.addEventListener("input", () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(runSearch, 250);
+    });
+  }
+  const prev = document.getElementById("searchPrev"); if (prev) prev.onclick = () => gotoMatch(-1);
+  const next = document.getElementById("searchNext"); if (next) next.onclick = () => gotoMatch(1);
+  const close = document.getElementById("searchClose"); if (close) close.onclick = () => closeSearch();
+  const cs = document.getElementById("searchCase"); if (cs) cs.onchange = () => runSearch();
+}
 
 // ===== Electron menu integration =====
 if (window.electronAPI && window.electronAPI.onPdfLoaded) {
-  window.electronAPI.onPdfLoaded((data) => loadPdfFromBase64(data.base64, data.fileName));
+  window.electronAPI.onPdfLoaded((data) => loadPdfFromBase64(data.base64, data.fileName, data.filePath));
+}
+if (window.electronAPI && window.electronAPI.onMenuSave) {
+  window.electronAPI.onMenuSave(() => UI.savePdf());
+}
+if (window.electronAPI && window.electronAPI.onMenuFind) {
+  window.electronAPI.onMenuFind(() => openSearch());
+}
+if (window.electronAPI && window.electronAPI.onMenuShortcuts) {
+  window.electronAPI.onMenuShortcuts(() => showShortcutsModal());
 }
 
 // ===== Init =====
+if (State.darkMode) document.body.classList.add("dark");
+renderWelcomeRecent();
 UI.renderRibbon();
 UI.renderSidebar();
 </script>

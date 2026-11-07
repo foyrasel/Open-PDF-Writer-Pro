@@ -34,6 +34,8 @@ function buildMenu() {
       { label: "Open PDF…", accelerator: "CmdOrCtrl+O", click: () => openPdf() },
       { label: "Save PDF…", accelerator: "CmdOrCtrl+S", click: () => mainWindow && mainWindow.webContents.send("menu:save") },
       { type: "separator" },
+      { label: "Find…", accelerator: "CmdOrCtrl+F", click: () => mainWindow && mainWindow.webContents.send("menu:find") },
+      { type: "separator" },
       isMac ? { role: "close" } : { role: "quit" },
     ].filter(Boolean) },
     { label: "View", submenu: [
@@ -42,10 +44,11 @@ function buildMenu() {
       { type: "separator" }, { role: "toggleDevTools" },
     ]},
     { label: "Help", submenu: [
+      { label: "Keyboard Shortcuts", accelerator: "CmdOrCtrl+/", click: () => mainWindow && mainWindow.webContents.send("menu:shortcuts") },
       { label: "About", click: () => {
         dialog.showMessageBox(mainWindow, {
-          type: "info", title: "About", message: "Open PDF Writer v2.0.2",
-          detail: "Free, open-source PDF reader + writer.\nRotate pages, extract pages, delete pages, annotations, drawing, forms.\nBuilt with Electron + PDF.js + pdf-lib.\nMIT License.",
+          type: "info", title: "About", message: "Open PDF Writer v2.1.0",
+          detail: "Free, open-source PDF reader + writer.\nFull-text search, dark mode, annotations, drawing, design review, page operations, forms.\nBuilt with Electron + PDF.js + pdf-lib.\nMIT License.",
           buttons: ["OK"],
         });
       }},
@@ -64,6 +67,7 @@ async function openPdf() {
   const buffer = await fs.promises.readFile(filePath);
   mainWindow.webContents.send("pdf:loaded", {
     fileName: path.basename(filePath),
+    filePath,
     base64: buffer.toString("base64"),
   });
 }
@@ -77,7 +81,19 @@ ipcMain.handle("dialog:open-pdf", async () => {
   if (result.canceled || result.filePaths.length === 0) return null;
   const filePath = result.filePaths[0];
   const buffer = await fs.promises.readFile(filePath);
-  return { fileName: path.basename(filePath), base64: buffer.toString("base64") };
+  return { fileName: path.basename(filePath), filePath, base64: buffer.toString("base64") };
+});
+
+// Reopen a recent file by absolute path (renderer passes a path it previously opened)
+ipcMain.handle("file:open-recent", async (_evt, filePath) => {
+  try {
+    if (!mainWindow) return null;
+    if (typeof filePath !== "string" || !path.isAbsolute(filePath) || !filePath.toLowerCase().endsWith(".pdf")) return null;
+    const buffer = await fs.promises.readFile(filePath);
+    return { fileName: path.basename(filePath), filePath, base64: buffer.toString("base64") };
+  } catch {
+    return null; // file moved or deleted
+  }
 });
 
 ipcMain.handle("dialog:save-pdf", async (_evt, bytes, suggestedName) => {
