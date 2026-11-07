@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Open PDF Writer — Pro</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f3f4f6; color: #1f2937;
+  display: flex; flex-direction: column;
+  font-size: 13px;
+}
+.topbar { background: #fff7ed; border-bottom: 1px solid #fed7aa; padding: 6px 12px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; height: 40px; }
+.topbar .logo { width: 26px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #f59e0b, #ea580c); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 11px; }
+.topbar h1 { font-size: 13px; font-weight: 600; flex: 1; }
+.topbar .filename { font-size: 12px; color: #6b7280; margin-right: 8px; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar button { background: #ea580c; color: white; border: 0; padding: 5px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 500; }
+.topbar button:hover { background: #c2410c; }
+.topbar button.secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
+.topbar button.secondary:hover { background: #f9fafb; }
+.ribbon-tabs { background: white; border-bottom: 1px solid #e5e7eb; display: flex; padding: 0 8px; flex-shrink: 0; }
+.ribbon-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 8px 16px; font-size: 12px; cursor: pointer; color: #6b7280; }
+.ribbon-tabs button:hover { background: #fff7ed; color: #ea580c; }
+.ribbon-tabs button.active { color: #ea580c; border-bottom-color: #ea580c; font-weight: 600; }
+.ribbon { background: #fafafa; border-bottom: 1px solid #e5e7eb; padding: 6px 12px; display: flex; align-items: flex-start; gap: 0; flex-shrink: 0; overflow-x: auto; min-height: 80px; }
+.ribbon-group { display: flex; flex-direction: column; align-items: center; padding: 0 8px; border-right: 1px solid #e5e7eb; }
+.ribbon-group:last-child { border-right: 0; }
+.ribbon-group .buttons { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; }
+.ribbon-group .label { font-size: 10px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.rbtn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 8px; border-radius: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; color: #374151; font-size: 10px; min-width: 50px; max-width: 70px; transition: all 0.1s; }
+.rbtn:hover { background: #fff7ed; border-color: #fed7aa; }
+.rbtn.active { background: #fff7ed; border-color: #ea580c; color: #ea580c; }
+.rbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.rbtn .icon { font-size: 18px; line-height: 1; }
+.rbtn .text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65px; }
+.color-row { display: flex; gap: 3px; align-items: center; }
+.color-swatch { width: 16px; height: 16px; border-radius: 3px; cursor: pointer; border: 1.5px solid white; box-shadow: 0 0 0 1px #d1d5db; }
+.color-swatch.active { box-shadow: 0 0 0 2px #ea580c; }
+.color-swatch:hover { transform: scale(1.15); }
+input[type=color] { width: 28px; height: 22px; border: 1px solid #d1d5db; border-radius: 3px; cursor: pointer; padding: 0; }
+input[type=range] { width: 80px; height: 4px; }
+input[type=number], input[type=text] { padding: 3px 6px; font-size: 12px; border: 1px solid #d1d5db; border-radius: 3px; }
+.main { flex: 1; display: flex; min-height: 0; }
+.sidebar { width: 240px; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-tabs { display: flex; border-bottom: 1px solid #e5e7eb; }
+.sidebar-tabs button { flex: 1; padding: 8px 4px; background: transparent; border: 0; border-bottom: 2px solid transparent; cursor: pointer; font-size: 11px; color: #6b7280; }
+.sidebar-tabs button:hover { background: #f9fafb; }
+.sidebar-tabs button.active { color: #ea580c; border-bottom-color: #ea580c; }
+.sidebar-content { flex: 1; overflow-y: auto; padding: 8px; }
+.sidebar-content::-webkit-scrollbar { width: 6px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+.thumb { display: flex; flex-direction: column; align-items: center; margin-bottom: 8px; padding: 4px; border-radius: 4px; cursor: pointer; position: relative; border: 2px solid transparent; }
+.thumb:hover { background: #f9fafb; }
+.thumb.active { border-color: #ea580c; background: #fff7ed; }
+.thumb .thumb-canvas { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.15); max-width: 100%; }
+.thumb .thumb-num { font-size: 10px; color: #6b7280; margin-top: 2px; }
+.thumb .thumb-actions { position: absolute; top: 2px; right: 2px; display: none; background: white; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.thumb:hover .thumb-actions { display: flex; }
+.thumb .thumb-actions button { background: transparent; border: 0; padding: 2px 4px; cursor: pointer; font-size: 12px; color: #6b7280; }
+.thumb .thumb-actions button:hover { background: #f3f4f6; }
+.comment-item { background: white; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px; margin-bottom: 6px; font-size: 12px; }
+.comment-item.selected { border-color: #ea580c; background: #fff7ed; }
+.comment-item .head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.comment-item .author { font-weight: 600; color: #374151; }
+.comment-item .time { color: #9ca3af; font-size: 10px; }
+.comment-item .body { color: #4b5563; }
+.comment-item .reply-btn { color: #ea580c; cursor: pointer; font-size: 11px; margin-top: 4px; }
+.comment-item .status { font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
+.comment-item .status.accepted { background: #d1fae5; color: #065f46; }
+.comment-item .status.rejected { background: #fee2e2; color: #991b1b; }
+.comment-item .status.completed { background: #dbeafe; color: #1e40af; }
+.bookmark-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.bookmark-item:hover { background: #f9fafb; }
+.bookmark-item .del { margin-left: auto; opacity: 0; color: #dc2626; cursor: pointer; }
+.bookmark-item:hover .del { opacity: 1; }
+.viewer { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f3f4f6; position: relative; }
+.viewer::-webkit-scrollbar { width: 10px; }
+.viewer::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+.page-container { position: relative; background: white; box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.1); }
+.page-container canvas { display: block; }
+.page-container .page-num-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.5); color: white; padding: 1px 6px; border-radius: 3px; font-size: 10px; }
+.annotation-layer { position: absolute; inset: 0; pointer-events: none; }
+.annotation-layer > * { pointer-events: auto; }
+.right-panel { width: 300px; background: white; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
+.right-panel .head { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
+.right-panel .body { flex: 1; overflow-y: auto; padding: 12px; font-size: 12px; }
+.right-panel .body label { display: block; color: #6b7280; margin: 8px 0 2px; font-size: 11px; }
+.right-panel .body input, .right-panel .body textarea, .right-panel .body select { width: 100%; padding: 5px 8px; font-size: 12px; border: 1px solid #d1d5db; border-radius: 3px; }
+.right-panel .body textarea { resize: vertical; min-height: 60px; }
+.statusbar { background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 3px 12px; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between; flex-shrink: 0; height: 22px; align-items: center; }
+.welcome-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.welcome-card { background: white; border-radius: 12px; padding: 40px 32px; text-align: center; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.welcome-card .logo { width: 64px; height: 64px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #ea580c); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700; }
+.welcome-card h2 { margin: 0 0 8px; font-size: 22px; }
+.welcome-card p { margin: 0 0 24px; color: #6b7280; font-size: 14px; }
+.welcome-card .open-btn { background: #ea580c; color: white; border: 0; padding: 12px 24px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 500; }
+.welcome-card .open-btn:hover { background: #c2410c; }
+.welcome-card .hint { margin-top: 12px; font-size: 12px; color: #9ca3af; }
+.welcome-card .features { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e7eb; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 11px; color: #6b7280; }
+.welcome-card .features div::before { content: "✓ "; color: #10b981; font-weight: 700; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #ea580c; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 32px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-box { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 6px; font-size: 13px; max-width: 500px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.modal { background: white; border-radius: 8px; padding: 24px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.modal h3 { margin: 0 0 12px; font-size: 18px; }
+.modal p { font-size: 13px; color: #6b7280; margin: 0 0 12px; }
+.modal label { display: block; font-size: 12px; color: #374151; margin: 10px 0 4px; font-weight: 500; }
+.modal input[type=text], .modal input[type=number], .modal input[type=password], .modal textarea, .modal select { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 4px; }
+.modal textarea { resize: vertical; min-height: 80px; }
+.modal .examples { font-size: 11px; color: #9ca3af; margin: 4px 0 12px; }
+.modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+.modal button { padding: 8px 16px; border-radius: 4px; font-size: 13px; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; }
+.modal button.primary { background: #ea580c; color: white; border-color: #ea580c; }
+.modal button:hover { opacity: 0.85; }
+.modal button:disabled { opacity: 0.5; cursor: not-allowed; }
+.toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 8px 16px; border-radius: 6px; font-size: 13px; z-index: 3000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: toastIn 0.2s; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.sticky-note { position: absolute; z-index: 60; cursor: move; width: 24px; height: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 3px; }
+.sticky-note::before { content: ""; position: absolute; top: 0; right: 0; width: 8px; height: 8px; background: rgba(0,0,0,0.2); clip-path: polygon(100% 0, 0 0, 100% 100%); }
+.sticky-note .popup { display: none; position: absolute; left: 28px; top: 0; width: 200px; background: #fef9c3; border: 1px solid #fde047; padding: 6px; border-radius: 4px; font-size: 11px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.sticky-note:hover .popup { display: block; }
+.stamp { position: absolute; z-index: 60; border: 2.5px solid currentColor; padding: 4px 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px; border-radius: 2px; background: rgba(255,255,255,0.7); display: inline-block; white-space: nowrap; transform: rotate(-4deg); box-shadow: 0 1px 2px rgba(0,0,0,0.08); cursor: move; }
+.text-box { position: absolute; z-index: 60; background: transparent; border: 0; outline: 0; resize: none; padding: 2px; font-family: Helvetica, Arial, sans-serif; }
+.text-box:focus { outline: 1.5px solid #ea580c; background: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="logo">PDF</div>
+  <h1>Open PDF Writer <span style="font-weight:400;color:#9ca3af">Pro</span></h1>
+  <span class="filename" id="fileName">No document</span>
+  <button class="secondary" onclick="UI.openPdf()">Open</button>
+  <button onclick="UI.savePdf()">Save</button>
+</div>
+
+<!-- Ribbon tabs -->
+<div class="ribbon-tabs" id="ribbonTabs">
+  <button class="active" data-tab="home" onclick="UI.switchTab('home')">Home</button>
+  <button data-tab="annotate" onclick="UI.switchTab('annotate')">Annotate</button>
+  <button data-tab="draw" onclick="UI.switchTab('draw')">Draw</button>
+  <button data-tab="page" onclick="UI.switchTab('page')">Page</button>
+  <button data-tab="edit" onclick="UI.switchTab('edit')">Edit</button>
+  <button data-tab="tools" onclick="UI.switchTab('tools')">Tools</button>
+  <button data-tab="view" onclick="UI.switchTab('view')">View</button>
+</div>
+
+<!-- Ribbon content -->
+<div class="ribbon" id="ribbon"></div>
+
+<!-- Main layout -->
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="active" data-side="thumbs" onclick="UI.switchSidebar('thumbs')">Pages</button>
+      <button data-side="comments" onclick="UI.switchSidebar('comments')">Comments</button>
+      <button data-side="bookmarks" onclick="UI.switchSidebar('bookmarks')">Bookmarks</button>
+    </div>
+    <div class="sidebar-content" id="sidebarContent"></div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <div id="viewerContent">
+      <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-card">
+          <div class="logo">PDF</div>
+          <h2>Open PDF Writer Pro</h2>
+          <p>A complete, open-source PDF editor with annotations, drawing, page operations, forms, and security.</p>
+          <button class="open-btn" onclick="UI.openPdf()">Open a PDF</button>
+          <div class="hint">…or drag and drop a PDF file here</div>
+          <div class="features">
+            <div>Annotate (highlight, sticky, stamps)</div>
+            <div>Drawing tools (pen, cloud, arrow)</div>
+            <div>Page operations (rotate, extract, delete, merge, split)</div>
+            <div>Comments & review workflow</div>
+            <div>Forms (text, checkbox, signature)</div>
+            <div>Security (password, permissions)</div>
+            <div>Properties editor</div>
+            <div>Export as images</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel" id="rightPanel" style="display:none;">
+    <div class="head">
+      <span id="rightPanelTitle">Properties</span>
+      <button onclick="UI.closeRightPanel()" style="background:transparent;border:0;cursor:pointer;font-size:16px;color:#6b7280;">×</button>
+    </div>
+    <div class="body" id="rightPanelBody"></div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <span id="status">Ready</span>
+  <span>Open PDF Writer Pro v2.0.2 — MIT License</span>
+</div>
+
+<input type="file" id="fileInput" accept="application/pdf,.pdf" style="display:none" />
+
+<script type="module">
+import * as pdfjsLib from "./pdf.min.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.min.mjs";
+
+const pdfLibScript = document.createElement("script");
+pdfLibScript.src = "./pdf-lib.min.js";
+document.head.appendChild(pdfLibScript);
+await new Promise((resolve) => { pdfLibScript.onload = resolve; });
+
+const State = {
+  pdf: null, pdfBytes: null, fileName: "",
+  currentPage: 1, zoom: 1.0, viewRotation: 0, pageRotations: {},
+  activeTab: "home", activeTool: "select",
+  toolColor: "#ef4444", toolStrokeWidth: 2, toolOpacity: 1.0,
+  toolFontSize: 12, toolFill: false,
+  annotations: {}, comments: {},
+  selectedAnnotationId: null,
+  sidebarTab: "thumbs",
+  bookmarks: JSON.parse(localStorage.getItem("opdf-bookmarks") || "[]"),
+  author: localStorage.getItem("opdf-author") || "You",
+};
+window.State = State;
+
+function toast(msg, duration = 2500) {
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), duration);
+}
+window.toast = toast;
+
+function makeId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function nowIso() { return new Date().toISOString(); }
+
+async function renderPage(pageNum) {
+  if (!State.pdf) return;
+  const viewer = document.getElementById("viewerContent");
+  viewer.innerHTML = "";
+  const page = await State.pdf.getPage(pageNum);
+  const persistedRot = State.pageRotations[pageNum] || 0;
+  const totalRot = (State.viewRotation + persistedRot) % 360;
+  const viewport = page.getViewport({ scale: State.zoom, rotation: totalRot });
+  const container = document.createElement("div");
+  container.className = "page-container";
+  container.style.width = viewport.width + "px";
+  container.style.height = viewport.height + "px";
+  container.dataset.pageNum = pageNum;
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width; canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  container.appendChild(canvas);
+  const badge = document.createElement("div");
+  badge.className = "page-num-badge"; badge.textContent = "Page " + pageNum;
+  container.appendChild(badge);
+  const annLayer = document.createElement("div");
+  annLayer.className = "annotation-layer"; annLayer.dataset.pageNum = pageNum;
+  container.appendChild(annLayer);
+  viewer.appendChild(container);
+  renderAnnotationsForPage(pageNum);
+  attachToolHandlers(container, pageNum);
+  // Null checks — these elements only exist when the Home tab ribbon is rendered
+  const pageInput = document.getElementById("pageInput");
+  if (pageInput) pageInput.value = pageNum;
+  const zoomLabel = document.getElementById("zoomLabel");
+  if (zoomLabel) zoomLabel.textContent = Math.round(State.zoom * 100) + "%";
+}
+
+function annotationsForPage(pageNum) {
+  return Object.values(State.annotations).filter(a => a.pageNumber === pageNum);
+}
+
+function renderAnnotationsForPage(pageNum) {
+  const layer = document.querySelector(`.annotation-layer[data-page-num="${pageNum}"]`);
+  if (!layer) return;
+  layer.innerHTML = "";
+  const anns = annotationsForPage(pageNum);
+  const order = (k) => k === "highlight" || k === "underline" || k === "strike" ? 0
+    : k === "freehand" || k === "rect" || k === "ellipse" || k === "line" || k === "arrow" || k === "cloud" || k === "text" ? 1 : 2;
+  anns.sort((a, b) => order(a.kind) - order(b.kind));
+  for (const a of anns) {
+    const el = createAnnotationElement(a);
+    if (el) layer.appendChild(el);
+  }
+}
+
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function createAnnotationElement(a) {
+  const isSelected = State.selectedAnnotationId === a.id;
+  const z = State.zoom;
+  if (a.kind === "highlight" || a.kind === "underline" || a.kind === "strike") {
+    const svg = svgEl("svg", { width: "100%", height: "100%" });
+    svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
+    for (const q of (a.quads || [])) {
+      const x = q.x * z, y = q.y * z, w = q.width * z, h = q.height * z;
+      if (a.kind === "highlight") {
+        const r = svgEl("rect", { x, y, width: w, height: h, fill: a.color, opacity: a.opacity });
+        r.style.pointerEvents = "all"; r.style.cursor = "pointer";
+        r.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+        svg.appendChild(r);
+      } else if (a.kind === "underline") {
+        const ln = svgEl("line", { x1: x, y1: y + h, x2: x + w, y2: y + h, stroke: a.color, "stroke-width": 1.5 * z, opacity: a.opacity });
+        ln.style.pointerEvents = "all"; ln.style.cursor = "pointer";
+        ln.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+        svg.appendChild(ln);
+      } else {
+        const ln = svgEl("line", { x1: x, y1: y + h/2, x2: x + w, y2: y + h/2, stroke: a.color, "stroke-width": 1.5 * z, opacity: a.opacity });
+        ln.style.pointerEvents = "all"; ln.style.cursor = "pointer";
+        ln.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+        svg.appendChild(ln);
+      }
+    }
+    return svg;
+  }
+  if (a.kind === "freehand") {
+    const svg = svgEl("svg", { width: "100%", height: "100%" });
+    svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
+    const pts = a.points.map(p => `${p.x * z},${p.y * z}`).join(" ");
+    const pl = svgEl("polyline", { points: pts, fill: "none", stroke: a.color, "stroke-width": a.strokeWidth * z, opacity: a.opacity, "stroke-linecap": "round", "stroke-linejoin": "round" });
+    pl.style.pointerEvents = "stroke"; pl.style.cursor = "pointer";
+    pl.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    svg.appendChild(pl);
+    return svg;
+  }
+  if (a.kind === "rect" || a.kind === "ellipse" || a.kind === "cloud") {
+    const svg = svgEl("svg", { width: "100%", height: "100%" });
+    svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
+    const x = a.x * z, y = a.y * z, w = a.width * z, h = a.height * z, sw = a.strokeWidth * z;
+    let shape;
+    if (a.kind === "rect") shape = svgEl("rect", { x, y, width: w, height: h });
+    else if (a.kind === "ellipse") shape = svgEl("ellipse", { cx: x + w/2, cy: y + h/2, rx: w/2, ry: h/2 });
+    else { shape = svgEl("path", { d: cloudPath(x, y, w, h, sw) }); }
+    shape.setAttribute("fill", a.fill || "none");
+    shape.setAttribute("stroke", a.color); shape.setAttribute("stroke-width", sw);
+    shape.setAttribute("opacity", a.opacity);
+    shape.style.pointerEvents = "all"; shape.style.cursor = "pointer";
+    shape.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    svg.appendChild(shape);
+    return svg;
+  }
+  if (a.kind === "line" || a.kind === "arrow") {
+    const svg = svgEl("svg", { width: "100%", height: "100%" });
+    svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
+    const x1 = a.x * z, y1 = a.y * z, x2 = a.x2 * z, y2 = a.y2 * z;
+    const ln = svgEl("line", { x1, y1, x2, y2, stroke: a.color, "stroke-width": a.strokeWidth * z, opacity: a.opacity });
+    ln.style.pointerEvents = "all"; ln.style.cursor = "pointer";
+    ln.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    svg.appendChild(ln);
+    if (a.kind === "arrow") {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const sz = a.strokeWidth * 3 * z;
+      for (const ang of [angle + Math.PI - 0.4, angle + Math.PI + 0.4]) {
+        svg.appendChild(svgEl("line", { x1: x2, y1: y2, x2: x2 + Math.cos(ang) * sz, y2: y2 + Math.sin(ang) * sz, stroke: a.color, "stroke-width": 1.5, opacity: a.opacity }));
+      }
+    }
+    return svg;
+  }
+  if (a.kind === "sticky") {
+    const div = document.createElement("div");
+    div.className = "sticky-note";
+    div.style.left = (a.x * z) + "px"; div.style.top = (a.y * z) + "px";
+    div.style.width = (24 * z) + "px"; div.style.height = (24 * z) + "px";
+    div.style.background = a.color; div.style.opacity = a.opacity;
+    if (isSelected) div.style.outline = "2px solid #ea580c";
+    const popup = document.createElement("div"); popup.className = "popup";
+    popup.innerHTML = `<strong>${a.author}</strong><br>${a.body || "(empty)"}`;
+    div.appendChild(popup);
+    div.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    return div;
+  }
+  if (a.kind === "stamp") {
+    const div = document.createElement("div");
+    div.className = "stamp";
+    div.style.left = (a.x * z) + "px"; div.style.top = (a.y * z) + "px";
+    div.style.color = a.color; div.style.fontSize = (12 * z) + "px";
+    div.style.transform = `rotate(${a.rotation}deg)`;
+    if (isSelected) div.style.outline = "2px solid #ea580c";
+    div.textContent = a.text;
+    div.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    return div;
+  }
+  if (a.kind === "text") {
+    const ta = document.createElement("textarea");
+    ta.className = "text-box";
+    ta.style.left = (a.x * z) + "px"; ta.style.top = (a.y * z) + "px";
+    ta.style.width = (a.width * z) + "px"; ta.style.height = (a.height * z) + "px";
+    ta.style.fontSize = (a.fontSize * z) + "px"; ta.style.color = a.color; ta.style.opacity = a.opacity;
+    ta.style.fontWeight = a.bold ? 700 : 400; ta.style.fontStyle = a.italic ? "italic" : "normal";
+    ta.value = a.text;
+    ta.oninput = () => { a.text = ta.value; };
+    ta.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    return ta;
+  }
+  if (a.kind.startsWith("form_")) {
+    const div = document.createElement("div");
+    div.style.cssText = `position:absolute;left:${a.x*z}px;top:${a.y*z}px;width:${a.width*z}px;height:${a.height*z}px;border:1px solid ${a.color};background:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b7280`;
+    if (a.kind === "form_check") {
+      const cb = document.createElement("input"); cb.type = "checkbox";
+      cb.style.width = "100%"; cb.style.height = "100%";
+      div.appendChild(cb);
+    } else if (a.kind === "form_radio") {
+      const rb = document.createElement("input"); rb.type = "radio";
+      rb.style.width = "100%"; rb.style.height = "100%";
+      div.appendChild(rb);
+    } else {
+      div.textContent = a.kind.replace("form_", "").toUpperCase();
+    }
+    div.onclick = (e) => { e.stopPropagation(); selectAnnotation(a.id); };
+    return div;
+  }
+  return null;
+}
+
+function cloudPath(x, y, w, h, sw) {
+  const r = Math.max(sw * 2, Math.min(8, Math.min(w, h) / 6));
+  const steps = Math.max(8, Math.floor((2 * (w + h)) / (r * 1.5)));
+  let d = "";
+  const perim = (w + h) * 2;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const p = perimeterToPoint(t * perim, x, y, w, h);
+    if (i === 0) d += `M ${p.x} ${p.y} `;
+    else {
+      const prev = perimeterToPoint(((i-1)/steps) * perim, x, y, w, h);
+      const mx = (prev.x + p.x) / 2, my = (prev.y + p.y) / 2;
+      const nx = -(p.y - prev.y), ny = p.x - prev.x;
+      const len = Math.hypot(nx, ny) || 1;
+      const cx = mx + (nx / len) * r * 0.6, cy = my + (ny / len) * r * 0.6;
+      d += `Q ${cx} ${cy} ${p.x} ${p.y} `;
+    }
+  }
+  return d + "Z";
+}
+
+function perimeterToPoint(d, x, y, w, h) {
+  const p = (w + h) * 2;
+  d = ((d % p) + p) % p;
+  if (d < w) return { x: x + d, y: y + h };
+  if (d < w + h) return { x: x + w, y: y + h - (d - w) };
+  if (d < 2 * w + h) return { x: x + w - (d - w - h), y: y };
+  return { x, y: y + (d - 2 * w - h) };
+}
+
+function selectAnnotation(id) {
+  if (State.activeTool === "eraser") { deleteAnnotation(id); return; }
+  State.selectedAnnotationId = id;
+  renderPage(State.currentPage);
+  if (id) UI.openCommentPanel(id);
+}
+window.selectAnnotation = selectAnnotation;
+
+function deleteAnnotation(id) {
+  snapshot();
+  delete State.annotations[id];
+  for (const [cid, c] of Object.entries(State.comments)) {
+    if (c.annotationId === id) delete State.comments[cid];
+  }
+  if (State.selectedAnnotationId === id) State.selectedAnnotationId = null;
+  renderPage(State.currentPage);
+  UI.renderSidebar();
+  toast("Annotation deleted");
+}
+
+function addAnnotation(a) {
+  snapshot();
+  State.annotations[a.id] = a;
+  renderPage(State.currentPage);
+  UI.renderSidebar();
+  if (a.kind === "sticky") UI.openCommentPanel(a.id);
+}
+window.addAnnotation = addAnnotation;
+
+function setActiveTool(tool) {
+  State.activeTool = tool;
+  UI.renderRibbon();
+  document.getElementById("viewer").style.cursor = tool === "hand" ? "grab" : tool === "select" ? "default" : "crosshair";
+}
+
+
+// ===== Tool handlers =====
+function attachToolHandlers(container, pageNum) {
+  const layer = container.querySelector(".annotation-layer");
+  if (!layer) return;
+  let drag = null, freehandPts = null;
+  layer.style.pointerEvents = "auto";
+
+  layer.addEventListener("mousedown", (e) => {
+    if (State.activeTool === "select" || State.activeTool === "hand") {
+      State.selectedAnnotationId = null;
+      renderPage(pageNum);
+      return;
+    }
+    const rect = layer.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / State.zoom;
+    const y = (e.clientY - rect.top) / State.zoom;
+
+    if (["highlight","underline","strike","rect","ellipse","cloud","line","arrow"].includes(State.activeTool)) {
+      drag = { x0: x, y0: y, x1: x, y1: y };
+    } else if (State.activeTool === "freehand") {
+      freehandPts = [{ x, y }];
+    } else if (State.activeTool === "text") {
+      addAnnotation({ id: makeId(), kind: "text", pageNumber: pageNum, x, y, width: 200, height: 40, fontSize: State.toolFontSize, fontFamily: "Helvetica", bold: false, italic: false, text: "Click to edit", color: State.toolColor, opacity: State.toolOpacity, author: State.author, createdAt: nowIso() });
+      setActiveTool("select");
+    } else if (State.activeTool === "sticky") {
+      addAnnotation({ id: makeId(), kind: "sticky", pageNumber: pageNum, x: x - 12, y: y - 12, width: 24, height: 24, color: "#fbbf24", opacity: 1, body: "", author: State.author, createdAt: nowIso() });
+      setActiveTool("select");
+    } else if (State.activeTool.startsWith("stamp_")) {
+      const stampType = State.activeTool.replace("stamp_", "");
+      const labels = { approved: "Approved", draft: "Draft", final: "Final", completed: "Completed", confidential: "Confidential", received: "Received", reviewed: "Reviewed", void: "VOID" };
+      const colors = { approved: "#16a34a", draft: "#6b7280", final: "#9333ea", completed: "#0891b2", confidential: "#b91c1c", received: "#1d4ed8", reviewed: "#ca8a04", void: "#dc2626" };
+      addAnnotation({ id: makeId(), kind: "stamp", pageNumber: pageNum, x: x - 55, y: y - 14, width: 110, height: 28, text: labels[stampType] || "Stamp", color: colors[stampType] || State.toolColor, rotation: -4, opacity: State.toolOpacity, author: State.author, createdAt: nowIso() });
+      setActiveTool("select");
+    } else if (State.activeTool.startsWith("form_")) {
+      const kind = State.activeTool;
+      const w = kind === "form_check" || kind === "form_radio" ? 20 : 150;
+      const h = kind === "form_check" || kind === "form_radio" ? 20 : 24;
+      addAnnotation({ id: makeId(), kind, pageNumber: pageNum, x, y, width: w, height: h, color: State.toolColor, opacity: 1, author: State.author, createdAt: nowIso() });
+      setActiveTool("select");
+    }
+  });
+
+  layer.addEventListener("mousemove", (e) => {
+    if (drag) {
+      const rect = layer.getBoundingClientRect();
+      drag.x1 = (e.clientX - rect.left) / State.zoom;
+      drag.y1 = (e.clientY - rect.top) / State.zoom;
+      drawDragPreview(layer, drag);
+    } else if (freehandPts) {
+      const rect = layer.getBoundingClientRect();
+      freehandPts.push({ x: (e.clientX - rect.left) / State.zoom, y: (e.clientY - rect.top) / State.zoom });
+      drawFreehandPreview(layer, freehandPts);
+    }
+  });
+
+  const finish = () => {
+    if (drag) finalizeDragAnnotation(pageNum, drag);
+    if (freehandPts && freehandPts.length > 1) {
+      addAnnotation({ id: makeId(), kind: "freehand", pageNumber: pageNum, x: freehandPts[0].x, y: freehandPts[0].y, points: freehandPts, strokeWidth: State.toolStrokeWidth, color: State.toolColor, opacity: State.toolOpacity, author: State.author, createdAt: nowIso() });
+    }
+    drag = null; freehandPts = null;
+    clearPreview(layer);
+  };
+  layer.addEventListener("mouseup", finish);
+  layer.addEventListener("mouseleave", finish);
+}
+
+function drawDragPreview(layer, drag) {
+  clearPreview(layer);
+  const svg = svgEl("svg", { width: "100%", height: "100%" });
+  svg.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:50";
+  svg.dataset.preview = "1";
+  const x = Math.min(drag.x0, drag.x1) * State.zoom, y = Math.min(drag.y0, drag.y1) * State.zoom;
+  const w = Math.abs(drag.x1 - drag.x0) * State.zoom, h = Math.abs(drag.y1 - drag.y0) * State.zoom;
+  if (["rect","ellipse","cloud","highlight","underline","strike"].includes(State.activeTool)) {
+    let shape;
+    if (State.activeTool === "ellipse") shape = svgEl("ellipse", { cx: x + w/2, cy: y + h/2, rx: w/2, ry: h/2 });
+    else shape = svgEl("rect", { x, y, width: w, height: h });
+    shape.setAttribute("fill", State.activeTool === "highlight" ? State.toolColor : "none");
+    shape.setAttribute("stroke", State.toolColor);
+    shape.setAttribute("stroke-width", State.toolStrokeWidth * State.zoom);
+    shape.setAttribute("opacity", State.activeTool === "highlight" ? 0.4 : State.toolOpacity);
+    svg.appendChild(shape);
+  } else if (State.activeTool === "line" || State.activeTool === "arrow") {
+    svg.appendChild(svgEl("line", { x1: drag.x0 * State.zoom, y1: drag.y0 * State.zoom, x2: drag.x1 * State.zoom, y2: drag.y1 * State.zoom, stroke: State.toolColor, "stroke-width": State.toolStrokeWidth * State.zoom, opacity: State.toolOpacity }));
+  }
+  layer.appendChild(svg);
+}
+
+function drawFreehandPreview(layer, pts) {
+  clearPreview(layer);
+  const svg = svgEl("svg", { width: "100%", height: "100%" });
+  svg.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:50";
+  svg.dataset.preview = "1";
+  svg.appendChild(svgEl("polyline", { points: pts.map(p => `${p.x * State.zoom},${p.y * State.zoom}`).join(" "), fill: "none", stroke: State.toolColor, "stroke-width": State.toolStrokeWidth * State.zoom, opacity: State.toolOpacity, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+  layer.appendChild(svg);
+}
+
+function clearPreview(layer) {
+  layer.querySelectorAll('svg[data-preview="1"]').forEach(s => s.remove());
+}
+
+function finalizeDragAnnotation(pageNum, drag) {
+  const x = Math.min(drag.x0, drag.x1), y = Math.min(drag.y0, drag.y1);
+  const w = Math.abs(drag.x1 - drag.x0), h = Math.abs(drag.y1 - drag.y0);
+  if (w < 2 && h < 2) return;
+  if (State.activeTool === "highlight" || State.activeTool === "underline" || State.activeTool === "strike") {
+    getTextQuadsForSelection(pageNum, x, y, w, h).then(quads => {
+      if (quads.length === 0) { toast("No text in selection"); return; }
+      addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x, y, quads, color: State.toolColor, opacity: State.activeTool === "highlight" ? 0.4 : 1, author: State.author, createdAt: nowIso() });
+    });
+  } else if (State.activeTool === "rect" || State.activeTool === "ellipse" || State.activeTool === "cloud") {
+    addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x, y, width: w, height: h, strokeWidth: State.toolStrokeWidth, fill: State.toolFill ? State.toolColor + "20" : null, color: State.toolColor, opacity: State.toolOpacity, rotation: 0, author: State.author, createdAt: nowIso() });
+  } else if (State.activeTool === "line" || State.activeTool === "arrow") {
+    addAnnotation({ id: makeId(), kind: State.activeTool, pageNumber: pageNum, x: drag.x0, y: drag.y0, x2: drag.x1, y2: drag.y1, strokeWidth: State.toolStrokeWidth, hasArrowHead: State.activeTool === "arrow", color: State.toolColor, opacity: State.toolOpacity, author: State.author, createdAt: nowIso() });
+  }
+}
+
+async function getTextQuadsForSelection(pageNum, x, y, w, h) {
+  const page = await State.pdf.getPage(pageNum);
+  const tc = await page.getTextContent();
+  const viewport = page.getViewport({ scale: 1 });
+  const quads = [];
+  for (const item of tc.items) {
+    if (!item.str) continue;
+    const tx = item.transform[4], ty = item.transform[5];
+    const fh = item.transform[3] || item.height || 10;
+    const topY = viewport.height - (ty + fh);
+    const qx = tx, qy = topY, qw = item.width, qh = fh;
+    if (qx < x + w && qx + qw > x && qy < y + h && qy + qh > y) {
+      quads.push({ x: qx, y: qy, width: qw, height: qh });
+    }
+  }
+  return quads;
+}
+
+// ===== PDF-LIB operations =====
+async function withPdfLib(fn) {
+  if (!window.PDFLib) throw new Error("pdf-lib not loaded");
+  const doc = await window.PDFLib.PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+  const result = await fn(doc, window.PDFLib);
+  State.pdfBytes = await doc.save({ useObjectStreams: true });
+  State.pdf = await pdfjsLib.getDocument({ data: State.pdfBytes.slice() }).promise;
+  return result;
+}
+
+
+// ===== UI object =====
+const UI = {
+  openPdf: async function() {
+    if (window.electronAPI && window.electronAPI.isElectron) {
+      const result = await window.electronAPI.openPdf();
+      if (result && result.base64) await loadPdfFromBase64(result.base64, result.fileName);
+    } else {
+      document.getElementById("fileInput").click();
+    }
+  },
+  savePdf: async function() {
+    if (!State.pdfBytes) { toast("No document open"); return; }
+    try {
+      const outBytes = await burnAnnotationsIntoPdf();
+      const outName = State.fileName.replace(/\.pdf$/i, "") + "-edited.pdf";
+      if (window.electronAPI && window.electronAPI.electronSavePdf) {
+        const saved = await window.electronAPI.electronSavePdf(Array.from(outBytes), outName);
+        if (saved) toast("Saved to " + saved);
+      } else {
+        downloadBytes(outBytes, outName);
+        toast("Downloaded " + outName);
+      }
+    } catch (err) { console.error(err); toast("Save failed: " + err.message); }
+  },
+  switchTab: function(tab) {
+    State.activeTab = tab;
+    document.querySelectorAll(".ribbon-tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    this.renderRibbon();
+  },
+  switchSidebar: function(tab) {
+    State.sidebarTab = tab;
+    document.querySelectorAll(".sidebar-tabs button").forEach(b => b.classList.toggle("active", b.dataset.side === tab));
+    this.renderSidebar();
+  },
+  renderRibbon: function() {
+    const ribbon = document.getElementById("ribbon");
+    ribbon.innerHTML = "";
+    const fns = { home: RIBBON_HOME, annotate: RIBBON_ANNOTATE, draw: RIBBON_DRAW, page: RIBBON_PAGE, edit: RIBBON_EDIT, tools: RIBBON_TOOLS, view: RIBBON_VIEW };
+    ribbon.innerHTML = (fns[State.activeTab] || RIBBON_HOME)();
+    attachRibbonHandlers();
+  },
+  renderSidebar: function() {
+    const c = document.getElementById("sidebarContent");
+    if (State.sidebarTab === "thumbs") c.innerHTML = renderThumbnails();
+    else if (State.sidebarTab === "comments") c.innerHTML = renderCommentsList();
+    else if (State.sidebarTab === "bookmarks") c.innerHTML = renderBookmarks();
+    attachSidebarHandlers();
+  },
+  openRightPanel: function(title, html) {
+    document.getElementById("rightPanel").style.display = "flex";
+    document.getElementById("rightPanelTitle").textContent = title;
+    document.getElementById("rightPanelBody").innerHTML = html;
+  },
+  closeRightPanel: function() { document.getElementById("rightPanel").style.display = "none"; },
+  openCommentPanel: function(annotationId) {
+    const a = State.annotations[annotationId];
+    if (!a) return;
+    const comments = Object.values(State.comments).filter(c => c.annotationId === annotationId).sort((x, y) => x.createdAt.localeCompare(y.createdAt));
+    const html = `
+      <label>Author</label><input type="text" id="annAuthor" value="${a.author}" />
+      <label>Note</label><textarea id="annBody">${a.body || ""}</textarea>
+      <label>Replies (${comments.length})</label>
+      ${comments.map(c => `<div style="background:#f9fafb;padding:6px;border-radius:4px;margin-bottom:4px;"><div style="display:flex;justify-content:space-between;"><strong>${c.author}</strong><span style="font-size:10px;color:#9ca3af;">${new Date(c.createdAt).toLocaleString()}</span></div><div>${c.body}</div>${c.status && c.status !== "none" ? `<span class="status ${c.status}">${c.status}</span>` : ""}</div>`).join("")}
+      <label>Add reply</label><textarea id="replyBody" placeholder="Type your reply…"></textarea>
+      <div style="display:flex;gap:4px;margin-top:8px;">
+        <button onclick="UI.addReply('${annotationId}')" style="flex:1;background:#ea580c;color:white;border:0;padding:6px;border-radius:4px;cursor:pointer;">Reply</button>
+        <button onclick="UI.setCommentStatus('${annotationId}', 'accepted')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✓ Accept</button>
+        <button onclick="UI.setCommentStatus('${annotationId}', 'rejected')" style="flex:1;background:white;border:1px solid #d1d5db;padding:6px;border-radius:4px;cursor:pointer;">✗ Reject</button>
+      </div>
+      <button onclick="UI.deleteAnnotation('${annotationId}')" style="width:100%;margin-top:8px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:6px;border-radius:4px;cursor:pointer;">🗑 Delete annotation</button>
+    `;
+    this.openRightPanel("Comment", html);
+    document.getElementById("annAuthor").oninput = (e) => { a.author = e.target.value; };
+    document.getElementById("annBody").oninput = (e) => { a.body = e.target.value; renderPage(State.currentPage); };
+  },
+  addReply: function(annotationId) {
+    const body = document.getElementById("replyBody").value.trim();
+    if (!body) return;
+    const c = { id: makeId(), annotationId, parentId: null, author: State.author, body, createdAt: nowIso(), status: "none" };
+    State.comments[c.id] = c;
+    this.openCommentPanel(annotationId);
+    this.renderSidebar();
+  },
+  setCommentStatus: function(annotationId, status) {
+    const comments = Object.values(State.comments).filter(c => c.annotationId === annotationId);
+    let target;
+    if (comments.length === 0) {
+      target = { id: makeId(), annotationId, parentId: null, author: State.author, body: "Status: " + status, createdAt: nowIso(), status };
+      State.comments[target.id] = target;
+    } else {
+      target = comments.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      target.status = status;
+    }
+    this.openCommentPanel(annotationId);
+    this.renderSidebar();
+    toast("Marked as " + status);
+  },
+  deleteAnnotation: function(id) { deleteAnnotation(id); this.closeRightPanel(); },
+};
+window.UI = UI;
+
+// ===== Load PDF =====
+async function loadPdfFromBase64(base64, fileName) {
+  document.getElementById("viewerContent").innerHTML = '<div class="spinner"></div>';
+  document.getElementById("status").textContent = "Loading…";
+  try {
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    State.pdfBytes = bytes; State.fileName = fileName;
+    State.currentPage = 1; State.viewRotation = 0;
+    State.pageRotations = {}; State.annotations = {}; State.comments = {};
+    State.selectedAnnotationId = null;
+    State.pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+    document.getElementById("fileName").textContent = fileName;
+    const pc = document.getElementById("pageCount"); if (pc) pc.textContent = "/ " + State.pdf.numPages;
+    document.getElementById("welcomeOverlay")?.remove();
+    UI.renderRibbon(); UI.renderSidebar();
+    await renderPage(1);
+    document.getElementById("status").textContent = "Loaded " + fileName + " — " + State.pdf.numPages + " pages";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("viewerContent").innerHTML = '<div class="error-box"><strong>Failed to load PDF:</strong><br>' + (err.message || err) + '</div>';
+    document.getElementById("status").textContent = "Error: " + (err.message || err);
+  }
+}
+window.loadPdfFromBase64 = loadPdfFromBase64;
+
+
+// ===== Burn annotations into PDF =====
+async function burnAnnotationsIntoPdf() {
+  const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+  const doc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+  const helv = await doc.embedFont(StandardFonts.Helvetica);
+  const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const pages = doc.getPages();
+  for (const a of Object.values(State.annotations)) {
+    if (a.pageNumber > pages.length) continue;
+    const page = pages[a.pageNumber - 1];
+    const { height } = page.getSize();
+    const yBottom = height - a.y;
+    const color = hexToRgb(a.color);
+    const opacity = a.opacity ?? 1;
+    switch (a.kind) {
+      case "highlight":
+        for (const q of (a.quads || [])) page.drawRectangle({ x: q.x, y: height - q.y - q.height, width: q.width, height: q.height, color, opacity: 0.4 });
+        break;
+      case "underline":
+        for (const q of (a.quads || [])) page.drawLine({ start: { x: q.x, y: height - q.y - q.height }, end: { x: q.x + q.width, y: height - q.y - q.height }, thickness: 1, color, opacity });
+        break;
+      case "strike":
+        for (const q of (a.quads || [])) page.drawLine({ start: { x: q.x, y: height - q.y - q.height / 2 }, end: { x: q.x + q.width, y: height - q.y - q.height / 2 }, thickness: 1, color, opacity });
+        break;
+      case "sticky":
+        page.drawRectangle({ x: a.x, y: yBottom - 24, width: 24, height: 24, color, opacity: 0.9 });
+        if (a.body) page.drawText(a.body.substring(0, 50), { x: a.x + 28, y: yBottom - 14, size: 8, font: helv, color: hexToRgb("#111827") });
+        break;
+      case "stamp":
+        page.drawRectangle({ x: a.x, y: yBottom - a.height, width: a.width, height: a.height, borderColor: color, borderWidth: 2, color: hexToRgb("#ffffff"), opacity: 0.85 });
+        const tSize = Math.min(a.height * 0.55, 14);
+        const tw = helvBold.widthOfTextAtSize(a.text, tSize);
+        page.drawText(a.text, { x: a.x + (a.width - tw) / 2, y: yBottom - a.height / 2 - tSize / 2, size: tSize, font: helvBold, color });
+        break;
+      case "freehand":
+        for (let i = 1; i < a.points.length; i++) {
+          const p0 = a.points[i - 1], p1 = a.points[i];
+          page.drawLine({ start: { x: p0.x, y: height - p0.y }, end: { x: p1.x, y: height - p1.y }, thickness: a.strokeWidth, color, opacity });
+        }
+        break;
+      case "rect":
+        page.drawRectangle({ x: a.x, y: yBottom - a.height, width: a.width, height: a.height, borderColor: color, borderWidth: a.strokeWidth, color: a.fill ? hexToRgb(a.fill) : undefined, opacity });
+        break;
+      case "ellipse":
+        page.drawEllipse({ x: a.x + a.width / 2, y: yBottom - a.height / 2, xScale: a.width / 2, yScale: a.height / 2, borderColor: color, borderWidth: a.strokeWidth, color: a.fill ? hexToRgb(a.fill) : undefined, opacity });
+        break;
+      case "cloud":
+        page.drawRectangle({ x: a.x, y: yBottom - a.height, width: a.width, height: a.height, borderColor: color, borderWidth: a.strokeWidth, opacity });
+        break;
+      case "line":
+      case "arrow":
+        page.drawLine({ start: { x: a.x, y: height - a.y }, end: { x: a.x2, y: height - a.y2 }, thickness: a.strokeWidth, color, opacity });
+        if (a.kind === "arrow" && a.hasArrowHead) {
+          const sz = a.strokeWidth * 3;
+          const angle = Math.atan2(-(a.y2 - a.y), a.x2 - a.x);
+          for (const ang of [angle + Math.PI - 0.4, angle + Math.PI + 0.4]) {
+            page.drawLine({ start: { x: a.x2, y: height - a.y2 }, end: { x: a.x2 + Math.cos(ang) * sz, y: height - a.y2 - Math.sin(ang) * sz }, thickness: 1, color, opacity });
+          }
+        }
+        break;
+      case "text":
+        const font = a.bold ? helvBold : helv;
+        const lines = wrapText(a.text || "", font, a.fontSize, a.width);
+        let dy = 0;
+        for (const ln of lines) {
+          page.drawText(ln, { x: a.x + 2, y: yBottom - a.fontSize - dy, size: a.fontSize, font, color, opacity });
+          dy += a.fontSize * 1.2;
+        }
+        break;
+      case "form_text": case "form_check": case "form_radio": case "form_signature":
+        page.drawRectangle({ x: a.x, y: yBottom - a.height, width: a.width, height: a.height, borderColor: color, borderWidth: 1, opacity: 0.7 });
+        break;
+    }
+  }
+  return await doc.save({ useObjectStreams: true });
+}
+
+function hexToRgb(hex) {
+  const c = hex.replace("#", "");
+  const r = parseInt(c.substring(0, 2), 16) / 255;
+  const g = parseInt(c.substring(2, 4), 16) / 255;
+  const b = parseInt(c.substring(4, 6), 16) / 255;
+  return window.PDFLib.rgb(isNaN(r) ? 0 : r, isNaN(g) ? 0 : g, isNaN(b) ? 0 : b);
+}
+
+function wrapText(text, font, size, maxWidth) {
+  const out = [];
+  for (const para of text.split(/\r?\n/)) {
+    if (!para) { out.push(""); continue; }
+    const words = para.split(/\s+/);
+    let line = "";
+    for (const w of words) {
+      const candidate = line ? line + " " + w : w;
+      if (font.widthOfTextAtSize(candidate, size) <= maxWidth) line = candidate;
+      else { if (line) out.push(line); line = w; }
+    }
+    if (line) out.push(line);
+  }
+  return out;
+}
+
+
+// ===== Ribbon templates =====
+function toolBtn(tool, icon, label) {
+  return `<button class="rbtn ${State.activeTool === tool ? "active" : ""}" data-tool="${tool}" title="${label}"><span class="icon">${icon}</span><span class="text">${label}</span></button>`;
+}
+function colorSwatches() {
+  const colors = ["#ef4444","#f59e0b","#10b981","#3b82f6","#9333ea","#1f2937","#ffffff","#fbbf24"];
+  return `<div class="color-row">${colors.map(c => `<div class="color-swatch ${State.toolColor===c?"active":""}" data-color="${c}" style="background:${c}"></div>`).join("")}<input type="color" id="toolColorInput" value="${State.toolColor}" /></div>`;
+}
+function styleControls() {
+  return `<div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;align-items:flex-start;">${colorSwatches()}<div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">W</label><input type="range" min="1" max="12" step="0.5" value="${State.toolStrokeWidth}" id="toolWidth" /><span style="font-size:10px;width:20px;">${State.toolStrokeWidth}</span></div><div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">O</label><input type="range" min="0.1" max="1" step="0.1" value="${State.toolOpacity}" id="toolOpacity" /><span style="font-size:10px;width:30px;">${Math.round(State.toolOpacity*100)}%</span></div><div style="display:flex;gap:6px;align-items:center;"><label style="font-size:10px;color:#6b7280;">Font</label><input type="number" min="6" max="72" value="${State.toolFontSize}" id="toolFontSize" style="width:50px;" /><span style="font-size:10px;">pt</span></div></div><span class="label">Style</span></div>`;
+}
+function RIBBON_HOME() {
+  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.openPdf()"><span class="icon">📂</span><span class="text">Open</span></button><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button></div><span class="label">File</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="undo()"><span class="icon">↶</span><span class="text">Undo</span></button><button class="rbtn" onclick="redo()"><span class="icon">↷</span><span class="text">Redo</span></button></div><span class="label">Edit</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("hand","✋","Hand")}</div><span class="label">Navigate</span></div><div class="ribbon-group"><div class="buttons" style="flex-direction:column;gap:4px;"><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span></button><span id="zoomLabel" style="font-size:11px;width:40px;text-align:center;">100%</span><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span></button></div><div style="display:flex;gap:4px;align-items:center;"><button class="rbtn" onclick="prevPage()"><span class="icon">‹</span></button><input type="number" id="pageInput" value="1" min="1" style="width:40px;text-align:center;" onchange="goToPage(this.value)" /><span id="pageCount" style="font-size:11px;">/ 1</span><button class="rbtn" onclick="nextPage()"><span class="icon">›</span></button></div></div><span class="label">View</span></div>${styleControls()}`;
+}
+function RIBBON_ANNOTATE() {
+  return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("highlight","🖍","Highlight")}${toolBtn("underline","U̲","Underline")}${toolBtn("strike","S̶","Strike")}</div><span class="label">Text Markup</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("sticky","📝","Sticky Note")}${toolBtn("text","T","Text Box")}</div><span class="label">Notes</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("stamp_approved","✓","Approved")}${toolBtn("stamp_draft","D","Draft")}${toolBtn("stamp_final","F","Final")}${toolBtn("stamp_completed","✓","Completed")}${toolBtn("stamp_confidential","🔒","Confidential")}${toolBtn("stamp_received","📥","Received")}${toolBtn("stamp_reviewed","👁","Reviewed")}${toolBtn("stamp_void","✗","VOID")}</div><span class="label">Stamps</span></div>${styleControls()}`;
+}
+function RIBBON_DRAW() {
+  return `<div class="ribbon-group"><div class="buttons">${toolBtn("select","🖱","Select")}${toolBtn("eraser","🗑","Eraser")}</div><span class="label">Tools</span></div><div class="ribbon-group"><div class="buttons">${toolBtn("freehand","✏️","Pen")}${toolBtn("rect","▭","Rectangle")}${toolBtn("ellipse","◯","Ellipse")}${toolBtn("line","╱","Line")}${toolBtn("arrow","→","Arrow")}${toolBtn("cloud","☁","Cloud")}</div><span class="label">Shapes</span></div><div class="ribbon-group"><div class="buttons"><label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;"><input type="checkbox" id="toolFill" ${State.toolFill?"checked":""} /> Fill</label></div><span class="label">Options</span></div>${styleControls()}`;
+}
+function RIBBON_PAGE() {
+  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="rotatePageLeft()"><span class="icon">↺</span><span class="text">Rotate ←</span></button><button class="rbtn" onclick="rotatePageRight()"><span class="icon">↻</span><span class="text">Rotate →</span></button></div><span class="label">Rotate</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showExtractDialog()"><span class="icon">📋</span><span class="text">Extract</span></button><button class="rbtn" onclick="deletePage()"><span class="icon">🗑</span><span class="text">Delete</span></button><button class="rbtn" onclick="showInsertDialog()"><span class="icon">📥</span><span class="text">Insert</span></button><button class="rbtn" onclick="showMoveDialog()"><span class="icon">↕</span><span class="text">Move</span></button></div><span class="label">Organize</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showSplitDialog()"><span class="icon">✂️</span><span class="text">Split</span></button><button class="rbtn" onclick="showMergeDialog()"><span class="icon">🔗</span><span class="text">Merge</span></button><button class="rbtn" onclick="showCropDialog()"><span class="icon">🔲</span><span class="text">Crop</span></button></div><span class="label">Operations</span></div>`;
+}
+function RIBBON_EDIT() {
+  return `<div class="ribbon-group"><div class="buttons">${toolBtn("text","T","Add Text")}<button class="rbtn" onclick="addWhiteout()"><span class="icon">⬜</span><span class="text">Whiteout</span></button><button class="rbtn" onclick="addImage()"><span class="icon">🖼</span><span class="text">Image</span></button></div><span class="label">Add</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="editMetadata()"><span class="icon">ℹ</span><span class="text">Properties</span></button><button class="rbtn" onclick="editPageContent()"><span class="icon">✎</span><span class="text">Edit Page</span></button></div><span class="label">Metadata</span></div>${styleControls()}`;
+}
+function RIBBON_TOOLS() {
+  return `<div class="ribbon-group"><div class="buttons">${toolBtn("form_text","ab","Text Field")}${toolBtn("form_check","☑","Checkbox")}${toolBtn("form_radio","◉","Radio")}${toolBtn("form_signature","✍","Signature")}</div><span class="label">Form Fields</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="showSecurityDialog()"><span class="icon">🔒</span><span class="text">Password</span></button><button class="rbtn" onclick="removePassword()"><span class="icon">🔓</span><span class="text">Remove Pwd</span></button></div><span class="label">Security</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="exportAsImages()"><span class="icon">🖼</span><span class="text">Export PNG</span></button><button class="rbtn" onclick="exportAsSinglePages()"><span class="icon">📄</span><span class="text">Single Pages</span></button></div><span class="label">Export</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.savePdf()"><span class="icon">💾</span><span class="text">Save</span></button><button class="rbtn" onclick="window.print()"><span class="icon">🖨</span><span class="text">Print</span></button></div><span class="label">Output</span></div>`;
+}
+function RIBBON_VIEW() {
+  return `<div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="zoomIn()"><span class="icon">+</span><span class="text">Zoom In</span></button><button class="rbtn" onclick="zoomOut()"><span class="icon">−</span><span class="text">Zoom Out</span></button><button class="rbtn" onclick="State.zoom=1;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">1:1</span><span class="text">100%</span></button><button class="rbtn" onclick="State.zoom=0.5;renderPage(State.currentPage);UI.renderRibbon();"><span class="icon">⊖</span><span class="text">Fit</span></button></div><span class="label">Zoom</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="rotateView()"><span class="icon">⟳</span><span class="text">Rotate View</span></button><button class="rbtn" onclick="State.viewRotation=0;renderPage(State.currentPage);"><span class="icon">↑</span><span class="text">Reset</span></button></div><span class="label">Rotation</span></div><div class="ribbon-group"><div class="buttons"><button class="rbtn" onclick="UI.switchSidebar('thumbs')"><span class="icon">📑</span><span class="text">Thumbnails</span></button><button class="rbtn" onclick="UI.switchSidebar('comments')"><span class="icon">💬</span><span class="text">Comments</span></button><button class="rbtn" onclick="UI.switchSidebar('bookmarks')"><span class="icon">🔖</span><span class="text">Bookmarks</span></button></div><span class="label">Panels</span></div>`;
+}
+
+// ===== Sidebar renderers =====
+function renderThumbnails() {
+  if (!State.pdf) return '<p style="color:#9ca3af;padding:8px;">Open a PDF to see thumbnails.</p>';
+  let html = "";
+  for (let i = 1; i <= State.pdf.numPages; i++) {
+    html += `<div class="thumb ${i === State.currentPage ? "active" : ""}" data-page="${i}" onclick="goToPage(${i})"><div class="thumb-canvas" id="thumb-${i}" style="width:120px;height:160px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:11px;">Page ${i}</div><div class="thumb-num">${i}</div><div class="thumb-actions"><button onclick="event.stopPropagation();rotatePageAt(${i},90)" title="Rotate">↻</button><button onclick="event.stopPropagation();deletePageAt(${i})" title="Delete">🗑</button></div></div>`;
+  }
+  return html;
+}
+function renderCommentsList() {
+  const anns = Object.values(State.annotations).filter(a => a.body || Object.values(State.comments).some(c => c.annotationId === a.id));
+  let html = '<input type="text" value="' + State.author + '" onchange="State.author=this.value;localStorage.setItem(\'opdf-author\',this.value);" style="width:100%;padding:4px;margin-bottom:8px;" placeholder="Your name" />';
+  if (anns.length === 0) return html + '<p style="color:#9ca3af;padding:8px;">No comments yet. Add a sticky note or annotation, then click it to add a comment.</p>';
+  for (const a of anns) {
+    const comments = Object.values(State.comments).filter(c => c.annotationId === a.id).sort((x, y) => x.createdAt.localeCompare(y.createdAt));
+    const latest = comments[comments.length - 1];
+    html += `<div class="comment-item ${State.selectedAnnotationId===a.id?"selected":""}" onclick="selectAnnotation('${a.id}');goToPage(${a.pageNumber})"><div class="head"><span class="author">${a.author}</span>${latest && latest.status && latest.status !== "none" ? `<span class="status ${latest.status}">${latest.status}</span>` : ""}</div><div class="body">p.${a.pageNumber} — ${a.kind}: ${a.body || (comments[0]?.body || "(no text)")}</div><div class="reply-btn" onclick="event.stopPropagation();UI.openCommentPanel('${a.id}')">Reply →</div></div>`;
+  }
+  return html;
+}
+function renderBookmarks() {
+  let html = `<button onclick="addBookmark()" style="width:100%;padding:6px;background:#ea580c;color:white;border:0;border-radius:4px;cursor:pointer;margin-bottom:8px;">+ Bookmark page ${State.currentPage}</button>`;
+  if (State.bookmarks.length === 0) return html + '<p style="color:#9ca3af;padding:8px;">No bookmarks yet.</p>';
+  for (const b of State.bookmarks) {
+    html += `<div class="bookmark-item" onclick="goToPage(${b.page})"><span>🔖</span><span>${b.label}</span><span class="del" onclick="event.stopPropagation();removeBookmark('${b.id}')">×</span></div>`;
+  }
+  return html;
+}
+
+function addBookmark() {
+  State.bookmarks.push({ id: makeId(), label: "Page " + State.currentPage, page: State.currentPage });
+  localStorage.setItem("opdf-bookmarks", JSON.stringify(State.bookmarks));
+  UI.renderSidebar();
+  toast("Bookmark added");
+}
+window.addBookmark = addBookmark;
+
+function removeBookmark(id) {
+  State.bookmarks = State.bookmarks.filter(b => b.id !== id);
+  localStorage.setItem("opdf-bookmarks", JSON.stringify(State.bookmarks));
+  UI.renderSidebar();
+}
+window.removeBookmark = removeBookmark;
+
+
+// ===== Ribbon handlers =====
+function attachRibbonHandlers() {
+  document.querySelectorAll(".rbtn[data-tool]").forEach(btn => {
+    btn.onclick = () => {
+      const tool = btn.dataset.tool;
+      if (tool === "eraser") {
+        setActiveTool("eraser");
+        toast("Click an annotation to delete it");
+        return;
+      }
+      setActiveTool(tool);
+    };
+  });
+  document.querySelectorAll(".color-swatch").forEach(s => {
+    s.onclick = () => { State.toolColor = s.dataset.color; UI.renderRibbon(); };
+  });
+  const ci = document.getElementById("toolColorInput"); if (ci) ci.oninput = (e) => { State.toolColor = e.target.value; };
+  const tw = document.getElementById("toolWidth"); if (tw) tw.oninput = (e) => { State.toolStrokeWidth = Number(e.target.value); UI.renderRibbon(); };
+  const op = document.getElementById("toolOpacity"); if (op) op.oninput = (e) => { State.toolOpacity = Number(e.target.value); UI.renderRibbon(); };
+  const fs = document.getElementById("toolFontSize"); if (fs) fs.oninput = (e) => { State.toolFontSize = Number(e.target.value); UI.renderRibbon(); };
+  const fi = document.getElementById("toolFill"); if (fi) fi.onchange = (e) => { State.toolFill = e.target.checked; };
+}
+
+function attachSidebarHandlers() {
+  if (State.sidebarTab === "thumbs" && State.pdf) setTimeout(renderThumbnailImages, 50);
+}
+
+async function renderThumbnailImages() {
+  if (!State.pdf) return;
+  for (let i = 1; i <= State.pdf.numPages; i++) {
+    const el = document.getElementById("thumb-" + i);
+    if (!el || el.dataset.rendered) continue;
+    try {
+      const page = await State.pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 0.2 });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      canvas.style.width = "120px"; canvas.style.height = "auto";
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      el.innerHTML = ""; el.appendChild(canvas); el.dataset.rendered = "1";
+    } catch (err) { console.error("Thumb", i, err); }
+  }
+}
+
+// ===== Navigation =====
+window.zoomIn = () => { State.zoom = Math.min(4, State.zoom + 0.1); renderPage(State.currentPage); };
+window.zoomOut = () => { State.zoom = Math.max(0.25, State.zoom - 0.1); renderPage(State.currentPage); };
+window.prevPage = () => { if (State.currentPage > 1) { State.currentPage--; renderPage(State.currentPage); UI.renderSidebar(); } };
+window.nextPage = () => { if (State.pdf && State.currentPage < State.pdf.numPages) { State.currentPage++; renderPage(State.currentPage); UI.renderSidebar(); } };
+window.goToPage = (n) => { n = parseInt(n, 10); if (State.pdf && n >= 1 && n <= State.pdf.numPages) { State.currentPage = n; renderPage(State.currentPage); UI.renderSidebar(); } };
+window.rotateView = () => { State.viewRotation = (State.viewRotation + 90) % 360; renderPage(State.currentPage); };
+
+// ===== Page operations =====
+window.rotatePageRight = async () => rotatePageAt(State.currentPage, 90);
+window.rotatePageLeft = async () => rotatePageAt(State.currentPage, -90);
+async function rotatePageAt(pageNum, degrees) {
+  if (!State.pdfBytes) return;
+  document.getElementById("status").textContent = "Rotating page " + pageNum + "…";
+  try {
+    await withPdfLib(async (doc) => {
+      const pages = doc.getPages();
+      if (pageNum < 1 || pageNum > pages.length) return;
+      const page = pages[pageNum - 1];
+      const current = page.getRotation().angle || 0;
+      page.setRotation({ type: "degrees", angle: (current + degrees + 360) % 360 });
+    });
+    State.pageRotations[pageNum] = (State.pageRotations[pageNum] || 0) + degrees;
+    await renderPage(State.currentPage);
+    UI.renderSidebar();
+    toast("Page " + pageNum + " rotated");
+  } catch (err) { console.error(err); toast("Rotate failed: " + err.message); }
+}
+window.rotatePageAt = rotatePageAt;
+
+window.deletePage = async () => deletePageAt(State.currentPage);
+async function deletePageAt(pageNum) {
+  if (!State.pdfBytes) return;
+  if (State.pdf.numPages <= 1) { toast("Cannot delete the only page"); return; }
+  if (!confirm("Delete page " + pageNum + " of " + State.pdf.numPages + "?")) return;
+  try {
+    await withPdfLib(async (doc) => { doc.removePage(pageNum - 1); });
+    if (State.currentPage >= State.pdf.numPages) State.currentPage = State.pdf.numPages;
+    const pc = document.getElementById("pageCount"); if (pc) pc.textContent = "/ " + State.pdf.numPages;
+    await renderPage(State.currentPage);
+    UI.renderSidebar();
+    toast("Page " + pageNum + " deleted");
+  } catch (err) { console.error(err); toast("Delete failed: " + err.message); }
+}
+window.deletePageAt = deletePageAt;
+
+window.showExtractDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Extract Pages</h3><p>Enter page numbers to extract into a new PDF:</p><input type="text" id="extractRange" placeholder="e.g. 1-3, 5, 7-9" /><div class="examples"><code>1-3</code> — pages 1, 2, 3<br><code>5</code> — only page 5<br><code>1-3, 5, 7-9</code> — multiple ranges<br><code>all</code> — all pages</div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="extractPages(document.getElementById('extractRange').value)">Extract & Save</button></div>`);
+  setTimeout(() => document.getElementById("extractRange")?.focus(), 50);
+};
+async function extractPages(rangeStr) {
+  closeModal();
+  if (!State.pdfBytes) return;
+  try {
+    const pages = parsePageRange(rangeStr, State.pdf.numPages);
+    if (pages.length === 0) { toast("No pages selected"); return; }
+    document.getElementById("status").textContent = "Extracting " + pages.length + " pages…";
+    const { PDFDocument } = window.PDFLib;
+    const srcDoc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    const newDoc = await PDFDocument.create();
+    const copied = await newDoc.copyPages(srcDoc, pages.map(p => p - 1));
+    for (const p of copied) newDoc.addPage(p);
+    const newBytes = await newDoc.save({ useObjectStreams: true });
+    const outName = State.fileName.replace(/\.pdf$/i, "") + "-extracted.pdf";
+    if (window.electronAPI?.electronSavePdf) { const s = await window.electronAPI.electronSavePdf(Array.from(newBytes), outName); toast(s ? "Saved to " + s : "Cancelled"); }
+    else { downloadBytes(newBytes, outName); toast("Downloaded " + outName); }
+  } catch (err) { console.error(err); toast("Extract failed: " + err.message); }
+}
+window.extractPages = extractPages;
+
+function parsePageRange(str, max) {
+  str = str.trim().toLowerCase();
+  if (str === "all") return Array.from({ length: max }, (_, i) => i + 1);
+  const pages = [];
+  for (const part of str.split(",")) {
+    const t = part.trim();
+    if (t.includes("-")) {
+      const [a, b] = t.split("-").map(s => parseInt(s.trim(), 10));
+      if (isNaN(a) || isNaN(b) || a < 1 || b < 1 || a > max || b > max) throw new Error("Invalid range: " + t);
+      for (let i = Math.min(a, b); i <= Math.max(a, b); i++) pages.push(i);
+    } else { const n = parseInt(t, 10); if (isNaN(n) || n < 1 || n > max) throw new Error("Invalid page: " + t); pages.push(n); }
+  }
+  return [...new Set(pages)].sort((a, b) => a - b);
+}
+
+window.showInsertDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Insert Pages from Another PDF</h3><p>Choose a PDF file to insert <strong>after</strong> page ${State.currentPage}:</p><input type="file" id="insertFile" accept="application/pdf,.pdf" style="width:100%;padding:6px;" /><label>Insert position</label><select id="insertPos"><option value="after">After page ${State.currentPage}</option><option value="before">Before page ${State.currentPage}</option><option value="beginning">At the beginning</option><option value="end">At the end</option></select><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="insertPages()">Insert</button></div>`);
+};
+async function insertPages() {
+  const fileInput = document.getElementById("insertFile");
+  const pos = document.getElementById("insertPos").value;
+  const file = fileInput.files[0];
+  if (!file) { toast("Choose a file first"); return; }
+  closeModal();
+  try {
+    const buf = await file.arrayBuffer();
+    const srcBytes = new Uint8Array(buf);
+    const { PDFDocument } = window.PDFLib;
+    const srcDoc = await PDFDocument.load(srcBytes, { ignoreEncryption: true });
+    let insertAt;
+    if (pos === "after") insertAt = State.currentPage;
+    else if (pos === "before") insertAt = State.currentPage - 1;
+    else if (pos === "beginning") insertAt = 0;
+    else insertAt = State.pdf.numPages;
+    await withPdfLib(async (doc) => {
+      const copied = await doc.copyPages(srcDoc, srcDoc.getPageIndices());
+      for (let i = 0; i < copied.length; i++) doc.insertPage(insertAt + i, copied[i]);
+    });
+    const pc = document.getElementById("pageCount"); if (pc) pc.textContent = "/ " + State.pdf.numPages;
+    await renderPage(State.currentPage);
+    UI.renderSidebar();
+    toast("Inserted " + srcDoc.getPageCount() + " pages");
+  } catch (err) { console.error(err); toast("Insert failed: " + err.message); }
+}
+window.insertPages = insertPages;
+
+window.showMoveDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Move Page</h3><p>Move page ${State.currentPage} to a new position:</p><label>New position (1-${State.pdf.numPages})</label><input type="number" id="moveTo" min="1" max="${State.pdf.numPages}" value="${State.currentPage}" /><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="movePage()">Move</button></div>`);
+};
+async function movePage() {
+  const to = parseInt(document.getElementById("moveTo").value, 10);
+  closeModal();
+  if (isNaN(to) || to < 1 || to > State.pdf.numPages) { toast("Invalid position"); return; }
+  if (to === State.currentPage) { toast("Same position"); return; }
+  try {
+    const from = State.currentPage;
+    const { PDFDocument } = window.PDFLib;
+    const doc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    const [copied] = await doc.copyPages(doc, [from - 1]);
+    doc.removePage(from - 1);
+    doc.insertPage(to - 1, copied);
+    State.pdfBytes = await doc.save({ useObjectStreams: true });
+    State.pdf = await pdfjsLib.getDocument({ data: State.pdfBytes.slice() }).promise;
+    State.currentPage = to;
+    await renderPage(State.currentPage);
+    UI.renderSidebar();
+    toast("Moved page " + from + " → " + to);
+  } catch (err) { console.error(err); toast("Move failed: " + err.message); }
+}
+window.movePage = movePage;
+
+window.showSplitDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Split PDF</h3><p>Split the PDF into multiple files:</p><label>Split mode</label><select id="splitMode" onchange="document.getElementById('splitOpts').innerHTML = this.value === 'ranges' ? '<label>Page ranges (comma-separated)</label><input type=&quot;text&quot; id=&quot;splitRanges&quot; placeholder=&quot;1-3, 4-6, 7-9&quot; />' : '<label>Pages per file</label><input type=&quot;number&quot; id=&quot;splitSize&quot; min=&quot;1&quot; value=&quot;1&quot; />'"><option value="size">Every N pages</option><option value="ranges">By ranges</option></select><div id="splitOpts"><label>Pages per file</label><input type="number" id="splitSize" min="1" value="1" /></div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="splitPdf()">Split</button></div>`);
+};
+async function splitPdf() {
+  closeModal();
+  if (!State.pdfBytes) return;
+  try {
+    const mode = document.getElementById("splitMode")?.value || "size";
+    const { PDFDocument } = window.PDFLib;
+    const srcDoc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    const total = srcDoc.getPageCount();
+    let groups = [];
+    if (mode === "size") {
+      const size = Math.max(1, parseInt(document.getElementById("splitSize")?.value || "1", 10));
+      for (let i = 0; i < total; i += size) groups.push(Array.from({ length: Math.min(size, total - i) }, (_, j) => i + j));
+    } else {
+      const parts = (document.getElementById("splitRanges")?.value || "1-" + total).split(",").map(s => s.trim());
+      groups = parts.map(p => parsePageRange(p, total).map(n => n - 1));
+    }
+    for (let i = 0; i < groups.length; i++) {
+      const newDoc = await PDFDocument.create();
+      const copied = await newDoc.copyPages(srcDoc, groups[i]);
+      for (const p of copied) newDoc.addPage(p);
+      const bytes = await newDoc.save({ useObjectStreams: true });
+      const outName = State.fileName.replace(/\.pdf$/i, "") + "-part" + (i + 1) + ".pdf";
+      if (window.electronAPI?.electronSavePdf) await window.electronAPI.electronSavePdf(Array.from(bytes), outName);
+      else downloadBytes(bytes, outName);
+    }
+    toast("Split into " + groups.length + " files");
+  } catch (err) { console.error(err); toast("Split failed: " + err.message); }
+}
+window.splitPdf = splitPdf;
+
+window.showMergeDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Merge with Another PDF</h3><p>Choose PDF files to merge with the current document:</p><input type="file" id="mergeFiles" accept="application/pdf,.pdf" multiple style="width:100%;padding:6px;" /><label>Order</label><select id="mergeOrder"><option value="after">Append selected files after current PDF</option><option value="before">Prepend selected files before current PDF</option></select><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="mergePdfs()">Merge</button></div>`);
+};
+async function mergePdfs() {
+  const files = document.getElementById("mergeFiles").files;
+  const order = document.getElementById("mergeOrder").value;
+  closeModal();
+  if (files.length === 0) { toast("Choose at least one file"); return; }
+  try {
+    document.getElementById("status").textContent = "Merging " + files.length + " files…";
+    const { PDFDocument } = window.PDFLib;
+    const merged = await PDFDocument.create();
+    const currentDoc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    if (order === "before") {
+      for (const file of files) {
+        const buf = await file.arrayBuffer();
+        const doc = await PDFDocument.load(buf, { ignoreEncryption: true });
+        const copied = await merged.copyPages(doc, doc.getPageIndices());
+        for (const p of copied) merged.addPage(p);
+      }
+      const copied = await merged.copyPages(currentDoc, currentDoc.getPageIndices());
+      for (const p of copied) merged.addPage(p);
+    } else {
+      const copied = await merged.copyPages(currentDoc, currentDoc.getPageIndices());
+      for (const p of copied) merged.addPage(p);
+      for (const file of files) {
+        const buf = await file.arrayBuffer();
+        const doc = await PDFDocument.load(buf, { ignoreEncryption: true });
+        const copied = await merged.copyPages(doc, doc.getPageIndices());
+        for (const p of copied) merged.addPage(p);
+      }
+    }
+    State.pdfBytes = await merged.save({ useObjectStreams: true });
+    State.pdf = await pdfjsLib.getDocument({ data: State.pdfBytes.slice() }).promise;
+    const pc = document.getElementById("pageCount"); if (pc) pc.textContent = "/ " + State.pdf.numPages;
+    await renderPage(State.currentPage);
+    UI.renderSidebar();
+    toast("Merged " + (files.length + 1) + " files");
+  } catch (err) { console.error(err); toast("Merge failed: " + err.message); }
+}
+window.mergePdfs = mergePdfs;
+
+window.showCropDialog = () => {
+  if (!State.pdf) return;
+  showModal(`<h3>Crop Page ${State.currentPage}</h3><p>Set crop margins (in points, 1pt = 1/72 inch). Positive values crop inward.</p><label>Top</label><input type="number" id="cropTop" value="0" min="0" /><label>Bottom</label><input type="number" id="cropBottom" value="0" min="0" /><label>Left</label><input type="number" id="cropLeft" value="0" min="0" /><label>Right</label><input type="number" id="cropRight" value="0" min="0" /><div class="examples">Use positive values to crop inward. The page content stays; only the visible area changes.</div><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="cropPage()">Crop</button></div>`);
+};
+async function cropPage() {
+  const top = parseFloat(document.getElementById("cropTop").value) || 0;
+  const bottom = parseFloat(document.getElementById("cropBottom").value) || 0;
+  const left = parseFloat(document.getElementById("cropLeft").value) || 0;
+  const right = parseFloat(document.getElementById("cropRight").value) || 0;
+  closeModal();
+  try {
+    await withPdfLib(async (doc) => {
+      const page = doc.getPage(State.currentPage - 1);
+      const { width, height } = page.getSize();
+      page.setCropBox(left, bottom, width - left - right, height - top - bottom);
+    });
+    await renderPage(State.currentPage);
+    toast("Page " + State.currentPage + " cropped");
+  } catch (err) { console.error(err); toast("Crop failed: " + err.message); }
+}
+window.cropPage = cropPage;
+
+
+// ===== Edit operations =====
+window.addWhiteout = async () => {
+  addAnnotation({ id: makeId(), kind: "rect", pageNumber: State.currentPage, x: 50, y: 50, width: 100, height: 20, strokeWidth: 0, fill: "#ffffff", color: "#ffffff", opacity: 1, rotation: 0, author: State.author, createdAt: nowIso() });
+  toast("Whiteout added — drag it to position");
+};
+window.addImage = async () => {
+  const input = document.createElement("input");
+  input.type = "file"; input.accept = "image/png,image/jpeg";
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      await withPdfLib(async (doc) => {
+        const page = doc.getPage(State.currentPage - 1);
+        const img = file.type === "image/png" ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+        const w = img.width, h = img.height;
+        const scale = Math.min(400 / w, 400 / h, 1);
+        page.drawImage(img, { x: 50, y: 50, width: w * scale, height: h * scale });
+      });
+      await renderPage(State.currentPage);
+      toast("Image added");
+    } catch (err) { console.error(err); toast("Image failed: " + err.message); }
+  };
+  input.click();
+};
+window.editMetadata = async () => {
+  if (!State.pdfBytes) return;
+  try {
+    const { PDFDocument } = window.PDFLib;
+    const doc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    showModal(`<h3>Document Properties</h3><label>Title</label><input type="text" id="metaTitle" value="${doc.getTitle() || ""}" /><label>Author</label><input type="text" id="metaAuthor" value="${doc.getAuthor() || ""}" /><label>Subject</label><input type="text" id="metaSubject" value="${doc.getSubject() || ""}" /><label>Keywords (comma-separated)</label><input type="text" id="metaKeywords" value="${(doc.getKeywords() || "")}" /><label>Creator</label><input type="text" id="metaCreator" value="${doc.getCreator() || ""}" /><label>Producer</label><input type="text" id="metaProducer" value="${doc.getProducer() || ""}" /><div class="actions"><button onclick="closeModal()">Cancel</button><button class="primary" onclick="saveMetadata()">Save</button></div>`);
+  } catch (err) { console.error(err); toast("Failed: " + err.message); }
+};
+async function saveMetadata() {
+  closeModal();
+  try {
+    await withPdfLib(async (doc) => {
+      doc.setTitle(document.getElementById("metaTitle").value);
+      doc.setAuthor(document.getElementById("metaAuthor").value);
+      doc.setSubject(document.getElementById("metaSubject").value);
+      doc.setKeywords(document.getElementById("metaKeywords").value.split(",").map(s => s.trim()).filter(Boolean));
+      doc.setCreator(document.getElementById("metaCreator").value);
+      doc.setProducer(document.getElementById("metaProducer").value);
+      doc.setModificationDate(new Date());
+    });
+    toast("Properties saved");
+  } catch (err) { console.error(err); toast("Save failed: " + err.message); }
+}
+window.saveMetadata = saveMetadata;
+window.editPageContent = () => { toast("Use the Text tool in the Edit tab to add text. Existing text editing is limited in PDF."); };
+
+// ===== Security =====
+window.showSecurityDialog = () => {
+  if (!State.pdfBytes) return;
+  showModal(`<h3>Password Protect</h3><p>pdf-lib doesn't support PDF encryption directly. For password protection, use qpdf externally:<br><code>qpdf --encrypt user_pwd owner_pwd 256 -- input.pdf output.pdf</code></p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
+};
+window.removePassword = () => { toast("Use qpdf externally: qpdf --decrypt input.pdf output.pdf"); };
+
+// ===== Export =====
+window.exportAsImages = async () => {
+  if (!State.pdf) return;
+  toast("Exporting " + State.pdf.numPages + " pages as PNG…");
+  for (let i = 1; i <= State.pdf.numPages; i++) {
+    try {
+      const page = await State.pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = State.fileName.replace(/\.pdf$/i, "") + "-page" + i + ".png";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await new Promise(r => setTimeout(r, 200));
+    } catch (err) { console.error("Page", i, err); }
+  }
+  toast("Exported " + State.pdf.numPages + " PNG files");
+};
+window.exportAsSinglePages = async () => {
+  if (!State.pdfBytes) return;
+  toast("Exporting each page as a separate PDF…");
+  try {
+    const { PDFDocument } = window.PDFLib;
+    const srcDoc = await PDFDocument.load(State.pdfBytes, { ignoreEncryption: true });
+    for (let i = 0; i < srcDoc.getPageCount(); i++) {
+      const newDoc = await PDFDocument.create();
+      const [copied] = await newDoc.copyPages(srcDoc, [i]);
+      newDoc.addPage(copied);
+      const bytes = await newDoc.save({ useObjectStreams: true });
+      const outName = State.fileName.replace(/\.pdf$/i, "") + "-page" + (i + 1) + ".pdf";
+      if (window.electronAPI?.electronSavePdf) await window.electronAPI.electronSavePdf(Array.from(bytes), outName);
+      else { downloadBytes(bytes, outName); await new Promise(r => setTimeout(r, 200)); }
+    }
+    toast("Exported " + srcDoc.getPageCount() + " single-page PDFs");
+  } catch (err) { console.error(err); toast("Export failed: " + err.message); }
+};
+
+// ===== Undo/Redo =====
+const history = { undo: [], redo: [] };
+function snapshot() {
+  history.undo.push(JSON.stringify({ annotations: State.annotations, comments: State.comments }));
+  if (history.undo.length > 30) history.undo.shift();
+  history.redo = [];
+}
+window.undo = () => {
+  if (history.undo.length === 0) { toast("Nothing to undo"); return; }
+  history.redo.push(JSON.stringify({ annotations: State.annotations, comments: State.comments }));
+  const s = JSON.parse(history.undo.pop());
+  State.annotations = s.annotations; State.comments = s.comments;
+  renderPage(State.currentPage); UI.renderSidebar();
+};
+window.redo = () => {
+  if (history.redo.length === 0) { toast("Nothing to redo"); return; }
+  history.undo.push(JSON.stringify({ annotations: State.annotations, comments: State.comments }));
+  const s = JSON.parse(history.redo.pop());
+  State.annotations = s.annotations; State.comments = s.comments;
+  renderPage(State.currentPage); UI.renderSidebar();
+};
+
+// ===== Modal & helpers =====
+function showModal(html) {
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay"; overlay.id = "modalOverlay";
+  overlay.innerHTML = `<div class="modal">${html}</div>`;
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  document.body.appendChild(overlay);
+}
+window.showModal = showModal;
+window.closeModal = () => document.getElementById("modalOverlay")?.remove();
+function downloadBytes(bytes, filename) {
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+// ===== File input + drag/drop =====
+document.getElementById("fileInput").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  await loadPdfFromBase64(bytesToBase64(bytes), file.name);
+  e.target.value = "";
+};
+document.body.addEventListener("dragover", (e) => { e.preventDefault(); });
+document.body.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  await loadPdfFromBase64(bytesToBase64(bytes), file.name);
+});
+document.addEventListener("keydown", (e) => {
+  if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === "o") { e.preventDefault(); UI.openPdf(); }
+    else if (e.key === "s") { e.preventDefault(); UI.savePdf(); }
+    else if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if ((e.key === "z" && e.shiftKey) || e.key === "y") { e.preventDefault(); redo(); }
+    else if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomIn(); }
+    else if (e.key === "-") { e.preventDefault(); zoomOut(); }
+  } else if (e.key === "ArrowLeft" && State.pdf) prevPage();
+  else if (e.key === "ArrowRight" && State.pdf) nextPage();
+  else if (e.key === "Escape") { closeModal(); UI.closeRightPanel(); }
+});
+
+// ===== Electron menu integration =====
+if (window.electronAPI && window.electronAPI.onPdfLoaded) {
+  window.electronAPI.onPdfLoaded((data) => loadPdfFromBase64(data.base64, data.fileName));
+}
+
+// ===== Init =====
+UI.renderRibbon();
+UI.renderSidebar();
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "open-pdf-writer",
+  "version": "2.0.2",
+  "description": "Free, open-source desktop PDF reader + writer (Acrobat-style). Annotations, drawing, page operations, forms, comments. Electron + PDF.js + pdf-lib. MIT License.",
+  "main": "main.cjs",
+  "author": { "name": "Open PDF Writer", "email": "open-pdf-writer@users.noreply.github.com" },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron . --no-sandbox",
+    "dev": "electron . --no-sandbox --enable-logging",
+    "dist:win": "electron-builder --win portable --publish never",
+    "dist:win-dir": "electron-builder --win dir --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux AppImage --publish never"
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.openpdfwriter.app",
+    "productName": "Open PDF Writer",
+    "directories": { "output": "release" },
+    "files": ["main.cjs", "preload.cjs", "renderer/**/*"],
+    "win": { "target": [{ "target": "portable", "arch": ["x64"] }] },
+    "mac": { "target": [{ "target": "dmg", "arch": ["x64"] }] },
+    "linux": { "target": [{ "target": "AppImage", "arch": ["x64"] }] }
+  }
+}
